@@ -467,6 +467,16 @@ textarea.ed-area.ed-empty{background:var(--slate-soft);border-color:var(--muted)
 textarea.ed-area:focus{outline:none;border:1px solid var(--teal);background:var(--surface)}
 abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
 code{background:var(--surface-alt);border:1px solid var(--hairline);border-radius:4px;padding:0 4px;font-size:.9em}
+.sample-chip{font-size:9.5px;letter-spacing:.06em;padding:1px 6px;margin-left:6px;
+  vertical-align:1px;opacity:.75}
+.startgrid{gap:13px}
+.startlist{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.startlist li{display:flex;gap:10px;align-items:baseline;font-size:12.5px}
+.startlist li strong{flex:0 0 148px;color:var(--ink)}
+.startre{margin:10px 0 0;padding-top:9px;border-top:1px solid var(--hairline);
+  color:var(--ink-2);font-size:12.5px}
+.ed-demo{background:var(--golden-soft);border-bottom:1px dashed var(--golden-deep);
+  border-radius:4px;padding:0 5px}
 </style>
 </head>
 <body>
@@ -658,10 +668,10 @@ function sampleData() {
   // Rates vary month to month (seasonal dips, an upward story) so the home-view
   // sparklines and "vs prev" delta badges have real movement to show.
   const revs    = [5210, 5840, 6420, 5980, 7150, 7890, 7420, 8310, 9040, 8620, 11890, 12710];
-  const openPct = [34.6, 35.8, 35.1, 36.4, 37.2, 36.1, 37.8, 38.4, 37.6, 38.9, 39.1, 39.9];
-  const ctrPct  = [2.62, 2.84, 2.71, 2.95, 3.08, 2.88, 3.12, 3.24, 3.05, 3.29, 3.18, 3.35];
-  const convPct = [0.64, 0.71, 0.68, 0.76, 0.81, 0.72, 0.78, 0.86, 0.92, 1.02, 1.14, 1.27];
-  const newSubsArr = [905, 948, 876, 1012, 1136, 951, 1028, 1094, 987, 1218, 1157, 1201];
+  const openPct = [31.4, 32.6, 31.9, 33.1, 33.8, 32.7, 34.2, 34.9, 34.1, 35.2, 35.4, 36.1];
+  const ctrPct  = [2.18, 2.34, 2.26, 2.41, 2.49, 2.38, 2.52, 2.61, 2.47, 2.64, 2.58, 2.68];
+  const convPct = [0.52, 0.58, 0.55, 0.62, 0.66, 0.59, 0.64, 0.70, 0.75, 0.83, 0.92, 1.02];
+  const newSubsArr = [712, 745, 690, 796, 893, 748, 808, 861, 777, 958, 910, 944];
   const unsubsArr  = [301, 289, 312, 296, 308, 331, 297, 304, 326, 318, 296, 289];
   const months = {};
   lastNMonthKeys(12).forEach((k, i) => {
@@ -682,11 +692,11 @@ function sampleData() {
     benchmarks: {open: 35, ctr: 2.5, ctor: 9, conv: 1.2, growth: 2, bounce: 2, complaint: 0.1},
     metrics: {
       subscribers: 24860, activeSubscribers: 16410,
-      bounceRate: 1.4, complaintRate: 0.06, senderScore: 94,
-      spf: 'pass', dkim: 'pass', dmarc: 'pass', blocklist: 'clear',
+      bounceRate: 1.8, complaintRate: 0.12, senderScore: 88,
+      spf: 'pass', dkim: 'pass', dmarc: 'unknown', blocklist: 'clear',
     },
     months,
-    scoreTrend: [88, 90, 89, 91, 92, 90, 93, 94, 93, 95, 94, 94],
+    scoreTrend: [69, 71, 70, 73, 74, 72, 75, 77, 76, 79, 80, 81],
     campaigns: [
       {id: uid(), title: 'Late Summer Restock', segment: 'Engaged 90d', date: isoOffset(1), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'scheduled', variant: '', notes: 'Hero: linen collection'},
       {id: uid(), title: 'VIP Early Access — Fall Preview', segment: 'VIP', date: isoOffset(4), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'scheduled', variant: 'A/B subject', notes: 'Gate: 24h early'},
@@ -700,7 +710,7 @@ function sampleData() {
     automations: [
       {id: uid(), name: 'Welcome series', trigger: 'New subscriber', emails: 4, status: 'running', revenue: 11240, lastReviewed: isoOffset(-12)},
       {id: uid(), name: 'Abandoned cart', trigger: 'Cart, no checkout 4h', emails: 3, status: 'running', revenue: 14310, lastReviewed: isoOffset(-9)},
-      {id: uid(), name: 'Browse abandonment', trigger: 'Viewed product, 24h', emails: 2, status: 'running', revenue: 4870, lastReviewed: isoOffset(-26)},
+      {id: uid(), name: 'Browse abandonment', trigger: 'Viewed product, 24h', emails: 2, status: 'needs review', revenue: 4870, lastReviewed: isoOffset(-26)},
       {id: uid(), name: 'Post-purchase care', trigger: 'Order delivered', emails: 3, status: 'running', revenue: 3190, lastReviewed: isoOffset(-19)},
       {id: uid(), name: 'Win-back', trigger: '90 days no purchase', emails: 3, status: 'needs review', revenue: 2680, lastReviewed: isoOffset(-41)},
       {id: uid(), name: 'Re-engagement / sunset', trigger: '120 days no open', emails: 2, status: 'running', revenue: 640, lastReviewed: isoOffset(-8)},
@@ -752,10 +762,10 @@ function sampleData() {
       ],
     },
     goals: [
-      {id: uid(), name: 'Monthly email revenue', target: 100000, actual: 96480, unit: '$'},
+      {id: uid(), name: 'Monthly email revenue', target: 100000, actual: 82340, unit: '$'},
       {id: uid(), name: 'List growth (net, 30d)', target: 2, actual: 3.4, unit: '%'},
       {id: uid(), name: 'Automation share of revenue', target: 45, actual: 38.9, unit: '%'},
-      {id: uid(), name: 'Sender score', target: 95, actual: 94, unit: ''},
+      {id: uid(), name: 'Sender score', target: 95, actual: 88, unit: ''},
       {id: uid(), name: 'Active subscribers', target: 18000, actual: 16410, unit: ''},
     ],
     tests: [
@@ -764,8 +774,79 @@ function sampleData() {
       {id: uid(), name: 'Plain-text founder note', hypothesis: 'Plain text lifts replies + deliverability', metric: 'Reply rate', a: '', b: '', winner: '', learning: '', status: 'running'},
     ],
     checklist: cl,
-    reportNotes: 'Strong month: revenue +7% MoM on flat send volume, driven by the flash weekend and welcome-series conversion. Watch items: win-back flow is overdue for review and the 90–120d lapsing segment is decaying — both are scheduled this week. Deliverability remains excellent (94 sender score, all authentication passing).',
+    reportNotes: 'Solid month: revenue up on flat send volume, driven by the flash weekend and welcome-series conversion. Watch items — the win-back and browse-abandonment flows are both overdue for review, the 90–120d lapsing segment is decaying, and DMARC still needs a DNS record. All three are on this week.',
   };
+}
+
+/* ================================================================
+   Sample data lifecycle — the file ships populated so a buyer can see
+   how everything works, then clears it in one click.
+   Row collections carry sample:true; Setup-style scalars are only reset
+   if the buyer hasn't edited them (compared against a fresh sample set).
+================================================================ */
+const SAMPLE_ROW_PATHS = ['campaigns', 'automations', 'segments', 'schedule', 'domains',
+  'goals', 'tests', 'ideas.campaigns', 'ideas.subjects', 'ideas.offers', 'hygiene.sources'];
+
+function atPath(o, path) {
+  return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+}
+function flagSampleRows(d) {
+  SAMPLE_ROW_PATHS.forEach(p => {
+    const arr = atPath(d, p);
+    if (Array.isArray(arr)) arr.forEach(r => { if (r && typeof r === 'object') r.sample = true; });
+  });
+  return d;
+}
+/* Scalars the sample set populates. Each is reverted on clear *only* when it
+   still holds the sample value, so a buyer who typed their own brand name,
+   benchmark, or monthly numbers keeps them. */
+function clearSampleData(d) {
+  const smp = flagSampleRows(sampleData()), st = starterData();
+  SAMPLE_ROW_PATHS.forEach(p => {
+    const arr = atPath(d, p);
+    if (!Array.isArray(arr)) return;
+    const keep = arr.filter(r => !(r && r.sample));
+    const parent = p.includes('.') ? atPath(d, p.slice(0, p.lastIndexOf('.'))) : d;
+    const key = p.slice(p.lastIndexOf('.') + 1);
+    parent[key] = keep;
+  });
+  ['brand', 'metrics', 'benchmarks'].forEach(grp => {
+    if (!d[grp] || !smp[grp]) return;
+    Object.keys(smp[grp]).forEach(k => {
+      if (JSON.stringify(d[grp][k]) === JSON.stringify(smp[grp][k])) {
+        d[grp][k] = (st[grp] || {})[k] ?? (typeof smp[grp][k] === 'number' ? null : '');
+      }
+    });
+  });
+  if (d.months && smp.months) {
+    Object.keys(smp.months).forEach(k => {
+      if (d.months[k] && JSON.stringify(d.months[k]) === JSON.stringify(smp.months[k])) delete d.months[k];
+    });
+  }
+  if (JSON.stringify(d.scoreTrend) === JSON.stringify(smp.scoreTrend)) d.scoreTrend = st.scoreTrend || [];
+  if (d.reportNotes === smp.reportNotes) d.reportNotes = st.reportNotes || '';
+  if (d.hygiene && smp.hygiene) {
+    ['suppressed', 'sunsetDays', 'lastCleaned', 'cleanCadence'].forEach(k => {
+      if (JSON.stringify(d.hygiene[k]) === JSON.stringify(smp.hygiene[k])) d.hygiene[k] = (st.hygiene || {})[k] ?? null;
+    });
+  }
+  return d;
+}
+function sampleActive() {
+  return state.meta && state.meta.sample === 'active';
+}
+function sampleChip(row) {
+  return (row && row.sample) ? '<span class="chip neutral sample-chip">SAMPLE</span>' : '';
+}
+function sampleBanner() {
+  if (ui.view !== 'home' || !sampleActive()) return '';
+  return `<div class="nudge" role="region" aria-label="Sample data notice">
+    ${icon('bulb', 16)}<span><strong>This is sample data so you can see how everything works.</strong>
+    Clear it whenever you're ready — nothing else changes.</span>
+    <span class="n-actions">
+      <button class="btn btn-primary" data-action="sample-clear">Clear sample data &amp; start fresh</button>
+      <button class="btn" data-action="sample-keep">Keep it for now</button>
+    </span></div>`;
 }
 /* ================================================================
    State engine — single object, localStorage with in-memory fallback
@@ -786,8 +867,8 @@ function storeSet(v) {
 function freshState() {
   return {
     version: 2,
-    data: DEMO ? sampleData() : starterData(),
-    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO()},
+    data: flagSampleRows(sampleData()),
+    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO(), sample: 'active'},
   };
 }
 /* Migrate a dataset that predates per-month base counts: its flat totals move
@@ -986,7 +1067,11 @@ function derive(d, keys = periodMonthsKeys()) {
   if (br !== null && br > 2) del -= Math.min(30, (br - 2) * 10);
   if (cr !== null && cr > 0.1) del -= Math.min(30, (cr - 0.1) * 150);
   if (ss !== null && ss < 90) del -= Math.min(30, (90 - ss) * 1.5);
-  r.subDeliv = clamp(Math.round(del), 0, 100);
+  /* Nothing entered yet is "no data", not "failing" — a brand-new or freshly
+     cleared file must read "no data yet" rather than scoring itself At risk. */
+  const authUnset = ['spf', 'dkim', 'dmarc'].every(k => !m[k] || m[k] === 'unknown');
+  r.subDeliv = (authUnset && br === null && cr === null && ss === null)
+    ? null : clamp(Math.round(del), 0, 100);
 
   const ratios = [
     div(r.openRate, b.open), div(r.ctr, b.ctr), div(r.convRate, b.conv),
@@ -1347,6 +1432,7 @@ document.addEventListener('pointerout', e => {
    Views, router, shell
 ================================================================ */
 const VIEWS = [
+  {id: 'start', label: 'Start Here', group: '', icon: 'target'},
   {id: 'setup', label: 'Setup & Brand Profile', group: 'Foundations', icon: 'sliders'},
   {id: 'domains', label: 'Sender Identity & Domains', group: 'Foundations', icon: 'globe'},
   {id: 'home', label: 'Home Dashboard', group: 'Command & Performance', icon: 'home'},
@@ -1454,7 +1540,7 @@ function renderNav() {
       <span class="wm-sub">Email Marketing Dashboard</span>
     </div>
     ${groups.map(g => `
-      <div class="navgroup"><h2>${esc(g)}</h2><ul>
+      <div class="navgroup"${g ? '' : ' style="margin-top:6px"'}>${g ? `<h2>${esc(g)}</h2>` : ''}<ul>
         ${VIEWS.filter(v => v.group === g).map(v => `
           <li><button class="navbtn" data-action="nav" data-view="${v.id}" ${ui.view === v.id ? 'aria-current="page"' : ''}>
             ${icon(v.icon, 16)}<span>${esc(v.label)}</span></button></li>`).join('')}
@@ -1885,7 +1971,7 @@ function viewCampaigns() {
         </tr></thead>
         <tbody>${shown.map(i => { const c = d.campaigns[i]; const ctor = div(c.clicked, c.opened); return `
           <tr>
-            <td>${edField(`campaigns.${i}.title`, {min: 16, max: 30, label: 'Campaign title'})}</td>
+            <td>${edField(`campaigns.${i}.title`, {min: 16, max: 30, label: 'Campaign title'})}${sampleChip(c)}</td>
             <td>${edField(`campaigns.${i}.segment`, {min: 10, max: 20, label: 'Segment'})}</td>
             <td>${edField(`campaigns.${i}.date`, {type: 'date', min: 10, label: 'Send date'})}<div class="li-sub">${relDay(c.date)}</div></td>
             <td>${cycleChip(`campaigns.${i}.status`, 'campaign', 'Campaign status')}</td>
@@ -2287,7 +2373,76 @@ function viewTests() {
 /* ================================================================
    Render + events
 ================================================================ */
+function startStep(n, title, body, act) {
+  return `<section class="card c4">
+    ${cardH(n === 1 ? 'sliders' : (n === 2 ? 'mail' : 'gauge'), title, 'Step ' + n, n === 1 ? 'coral' : (n === 2 ? 'golden' : 'aqua'))}
+    <div class="card-b"><p style="margin:0 0 10px">${body}</p>
+      <button class="btn btn-primary" data-action="goto" data-view="${act[0]}">${act[1]}</button></div>
+  </section>`;
+}
+function startLegend() {
+  return `<section class="card c4">
+    ${cardH('sliders', 'What you type, what it works out')}
+    <div class="card-b">
+      <p style="margin:0 0 8px"><span class="ed-demo">like this</span> &nbsp;is yours to type in — click it and start typing.</p>
+      <p style="margin:0 0 8px"><strong>Bold numbers</strong> and every chart, rate and score are worked out from what you typed. You never edit those.</p>
+      <p style="margin:0;color:var(--muted)">Enter saves, Escape undoes. Everything saves by itself about a third of a second after you stop typing.</p>
+    </div></section>`;
+}
+function startData() {
+  return `<section class="card c4">
+    ${cardH('shield', 'Where your data lives')}
+    <div class="card-b">
+      <p style="margin:0 0 8px">On this computer, in this browser. It is never uploaded and I never see it.</p>
+      <p style="margin:0 0 10px">That means the file is private — and that it is the only copy. <strong>Backup</strong> saves a dated file you can keep anywhere; <strong>Restore</strong> loads it back, on any computer.</p>
+      <button class="btn" data-action="backup">${icon('download', 14)}Back up now</button>
+    </div></section>`;
+}
+function startSample() {
+  const active = sampleActive();
+  return `<section class="card c4">
+    ${cardH('bulb', 'The example data')}
+    <div class="card-b">
+      <p style="margin:0 0 10px">${active
+        ? 'This file opens filled with a realistic example so you can see how every part works before you type anything. Clear it whenever you like — your own entries and settings stay.'
+        : 'The example data has been cleared. Anything you add from here is yours.'}</p>
+      ${active ? `<button class="btn btn-primary" data-action="sample-clear">Clear example data &amp; start fresh</button>` : staticChip('good', 'checkcircle', 'Cleared')}
+    </div></section>`;
+}
+function viewStart() {
+  return `
+  ${viewHead('Start Here', 'Three things and this is running. Nothing here takes more than a few minutes.')}
+  <div class="grid startgrid">
+    ${startStep(1, 'Name your brand', 'Open Setup and type your brand name. Half a minute. Everything else in the file reads from it.', ['setup', 'Open Setup'])}
+    ${startStep(2, 'Log two or three sends', 'Add your last few campaigns, with the numbers copied off the report screen in your email platform. Open rate, click rate and revenue per email work themselves out.', ['campaigns', 'Open Campaign Tracker'])}
+    ${startStep(3, 'Look at Home', 'That is enough for the whole dashboard to come alive — rates, benchmarks, trends and what to do next.', ['home', 'Open Home'])}
+
+    <section class="card c8">
+      ${cardH('target', 'What each part is for', '4 sections')}
+      <div class="card-b">
+        <ul class="startlist">
+      <li><strong>Foundations</strong><span class="li-sub">Your brand, sender details and the benchmarks everything is measured against.</span></li>
+      <li><strong>Command &amp; Performance</strong><span class="li-sub">The day-to-day: what went out, how it did, and what needs you today.</span></li>
+      <li><strong>Audience &amp; Strategy</strong><span class="li-sub">Your list, your segments, and what you are going to send next.</span></li>
+      <li><strong>Growth &amp; Reporting</strong><span class="li-sub">Goals, tests, and the one-page report you send a client.</span></li>
+        </ul>
+        <p class="startre">You do not have to fill in every section. Most people use three or four and ignore the rest — that is the intended way to use it, not a shortcut.</p>
+      </div>
+    </section>
+    ${startLegend()}
+
+    ${startData()}
+    ${startSample()}
+    <section class="card c4">
+      ${cardH('bulb', 'If you get stuck')}
+      <div class="card-b">
+        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you hover.</p>
+        <p style="margin:0">Still stuck? Message me through the shop — I answer my own messages, usually within a few hours.</p>
+      </div></section>
+  </div>`;
+}
 const VIEW_FN = {
+  start: viewStart,
   home: viewHome, setup: viewSetup, domains: viewDomains, campaigns: viewCampaigns,
   automations: viewAutomations, deliverability: viewDeliverability, segments: viewSegments,
   hygiene: viewHygiene, planner: viewPlanner, ideas: viewIdeas, goals: viewGoals,
@@ -2318,7 +2473,7 @@ function render() {
   renderNav();
   renderTopbar();
   const main = $('#main');
-  main.innerHTML = demoBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)();
+  main.innerHTML = demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)();
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
@@ -2360,6 +2515,22 @@ document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const act = btn.dataset.action;
+  if (act === 'sample-clear') {
+    if (!confirm('Clear the sample data?\n\nThis removes only the example rows that came with the file. Anything you have typed yourself — your brand details, your benchmarks, your own campaigns — is kept exactly as it is.')) return;
+    clearSampleData(state.data);
+    state.meta.sample = 'cleared';
+    save();
+    render();
+    toast('✓ Sample data cleared — the file is yours now');
+    return;
+  }
+  if (act === 'sample-keep') {
+    state.meta.sample = 'kept';
+    save();
+    render();
+    toast('✓ Kept — you can clear it later from Start Here');
+    return;
+  }
   if (act === 'nav' || act === 'goto') {
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
