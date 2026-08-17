@@ -181,6 +181,7 @@ main:focus{outline:none}
 .card-h.acc-coral{--hacc-deep:var(--coral-deep);--hacc-soft:var(--coral-soft)}
 .card-h.acc-aqua{--hacc-deep:var(--aqua-deep);--hacc-soft:var(--aqua-soft)}
 .card-h.acc-golden{--hacc-deep:var(--golden-deep);--hacc-soft:var(--golden-soft)}
+.card-h.acc-teal{--hacc-deep:var(--teal-deep);--hacc-soft:var(--teal-soft)}
 /* KPI tile accents — decorative top bar + label ink, never a data encoding */
 .acc-t-coral{border-top:3px solid var(--coral)}.acc-t-coral .t-label{color:var(--coral-deep)}
 .acc-t-teal{border-top:3px solid var(--teal)}.acc-t-teal .t-label{color:var(--teal-deep)}
@@ -270,9 +271,15 @@ table.data td{padding:8px 10px;border-bottom:1px solid var(--hairline);vertical-
 table.data tr:last-child td{border-bottom:none}
 table.data tbody tr:hover{background:var(--surface-alt)}
 table.data td.num,table.data th.num{text-align:right;font-variant-numeric:tabular-nums}
-.rowdel{opacity:0;color:var(--muted);padding:2px 5px;border-radius:6px;font-size:13px;line-height:1}
-tr:hover .rowdel,.rowdel:focus-visible{opacity:1}
+.rowdel,.rowedit{opacity:.5;color:var(--muted);padding:2px 5px;border-radius:6px;font-size:13px;line-height:1}
+tr:hover .rowdel,.rowdel:focus-visible,.rowdel:hover,
+tr:hover .rowedit,.rowedit:focus-visible,.rowedit:hover{opacity:1}
 .rowdel:hover{color:var(--critical);background:var(--critical-soft)}
+.rowedit:hover{color:var(--teal-deep);background:var(--teal-soft)}
+.rowlink{cursor:pointer}
+.rowlink:hover{background:var(--surface-alt)}
+.cal .day[data-action]{cursor:pointer}
+.cal .day[data-action]:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
 .addrow{display:inline-flex;align-items:center;gap:6px;color:var(--brand-deep);font-weight:600;font-size:12.5px;padding:8px 4px}
 .addrow:hover{text-decoration:underline}
 
@@ -503,7 +510,7 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 /* ============ Print (Client Report) ============ */
 @media print{
   body{background:#fff}
-  #sidebar,#topbar,#toast,.nudge,.noprint,#scrim{display:none!important}
+  #sidebar,#topbar,#toast,.nudge,.noprint,#scrim,.rowdel,.rowedit,.pmodal{display:none!important}
   main{padding:0;max-width:none}
   .card{box-shadow:none;break-inside:avoid}
   .viewhead .vh-aux{display:none}
@@ -628,6 +635,7 @@ const fmt = {
   signed(v, d = 1) { const n = num(v); return n === null ? '—' : (n > 0 ? '+' : '') + n.toLocaleString('en-US', {maximumFractionDigits: d}) + '%'; },
 };
 function todayISO() { return new Date().toISOString().slice(0, 10); }
+function localISO(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 function isoOffset(days) { const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10); }
 function daysSince(iso) {
   if (!iso) return null;
@@ -1649,7 +1657,7 @@ const VIEWS = [
   {id: 'abtests', label: 'A/B Test Log', group: 'Growth & Reporting', icon: 'flask', fn: viewTests},
   {id: 'wins', label: 'Wins & Highlights', group: 'Growth & Reporting', icon: 'medal', fn: viewWins},
 ];
-const ui = {view: 'home', sort: {}, monthOffset: 0, period: {mode: 'month', ref: monthKey()}, addModal: null};
+const ui = {view: 'home', sort: {}, monthOffset: 0, period: {mode: 'month', ref: monthKey()}, addModal: null, dayPeek: null};
 
 /* ---------------- Reporting period ---------------- */
 function periodMonthsKeys() {
@@ -1909,7 +1917,7 @@ function viewWins() {
                 ${edField(`wins.${i}.title`, {min: 20, max: 56, cls: 'ed-big', label: 'Win title'})}${sampleChip(w)}
                 <span class="wm-val">${edField(`wins.${i}.value`, {min: 5, max: 12, label: 'Result value', ph: 'result'})}</span>
                 <span class="li-sub">${edField(`wins.${i}.metric`, {min: 6, max: 16, label: 'Metric', ph: 'metric'})} · ${edField(`wins.${i}.date`, {type: 'date', min: 10, label: 'Date'})}</span>
-                <button class="rowdel" data-action="delrow" data-list="wins" data-i="${i}" aria-label="Delete win" style="margin-left:auto">${icon('x', 13)}</button>
+                <button class="rowedit" data-action="editrow" data-list="wins" data-i="${i}" aria-label="Edit this row" style="margin-left:auto">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="wins" data-i="${i}" aria-label="Delete win">${icon('x', 13)}</button>
               </div>
               <textarea class="ed ed-area" data-path="wins.${i}.note" data-etype="text" rows="3"
                 aria-label="What you learned" placeholder="What made it work — so you can do it again.">${esc(w.note || '')}</textarea>
@@ -2171,7 +2179,7 @@ function viewSetup() {
   ${periodBar()}
   <div class="grid">
     <section class="card c6">
-      ${cardH('sliders', 'Brand Profile', 'coral')}
+      ${cardH('sliders', 'Brand Profile', '', 'coral')}
       <div class="card-b"><div class="tablewrap"><table class="data" style="min-width:0"><tbody>
         <tr><th scope="row">Brand / client name</th><td>${edField('brand.name', {min: 12, label: 'Brand name'})}</td></tr>
         <tr><th scope="row">ESP</th><td>${edField('brand.esp', {min: 10, label: 'Email service provider'})}</td></tr>
@@ -2265,7 +2273,7 @@ function viewDomains() {
             <td>${cycleChip(`domains.${i}.dmarc`, 'auth', 'DMARC')}</td>
             <td>${edField(`domains.${i}.warmup`, {min: 10, label: 'Warm-up stage'})}</td>
             <td>${edField(`domains.${i}.ip`, {min: 8, label: 'Dedicated or shared IP'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="domains" data-i="${i}" aria-label="Delete domain">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="domains" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="domains" data-i="${i}" aria-label="Delete domain">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div>
         <button class="addrow" data-action="addrow" data-list="domains">${icon('plus', 13)}Add domain</button>
       </div>
@@ -2278,7 +2286,7 @@ function viewDomains() {
       </div>
     </section>
     <section class="card c6">
-      ${cardH('clock', 'Warm-Up Rules of Thumb', 'golden')}
+      ${cardH('clock', 'Warm-Up Rules of Thumb', '', 'golden')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px">New domain or dedicated IP: start ~50–100/day to your most engaged openers, roughly doubling every 2–3 days while bounce &lt; ${fmt.num(d.benchmarks.bounce)}% and complaints &lt; ${fmt.num(d.benchmarks.complaint, 2)}%.</p>
         <p style="margin:0">Full volume typically lands in 4–6 weeks. Track the stage here so a mid-warm-up blast never happens by accident.</p>
@@ -2367,7 +2375,7 @@ function viewCampaigns() {
             <td class="num">${edField(`campaigns.${i}.revenue`, {type: 'num', min: 6, label: 'Revenue'})}</td>
             <td>${edField(`campaigns.${i}.variant`, {min: 6, max: 12, label: 'A/B variant'})}</td>
             <td>${edField(`campaigns.${i}.notes`, {min: 12, max: 24, label: 'Notes'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="campaigns" data-i="${i}" aria-label="Delete campaign">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="campaigns" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="campaigns" data-i="${i}" aria-label="Delete campaign">${icon('x', 13)}</button></td>
           </tr>`; }).join('')}</tbody>
         <tfoot><tr style="background:var(--surface-alt);font-weight:600">
           <td colspan="4">Totals — ${sent.length} sent campaign${sent.length === 1 ? '' : 's'}</td>
@@ -2411,7 +2419,7 @@ function viewAutomations() {
       return `
       <section class="card c4">
         <div class="card-h acc-coral">${icon('zap', 15)}<h3 style="text-transform:none;letter-spacing:0;font-size:13.5px">${edField(`automations.${i}.name`, {min: 12, max: 22, label: 'Flow name'})}</h3>
-          <span class="h-aux"><button class="rowdel" style="opacity:.6" data-action="delrow" data-list="automations" data-i="${i}" aria-label="Delete flow">${icon('x', 13)}</button></span></div>
+          <span class="h-aux"><button class="rowedit" data-action="editrow" data-list="automations" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="automations" data-i="${i}" aria-label="Delete flow">${icon('x', 13)}</button></span></div>
         <div class="card-b">
           <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px">${cycleChip(`automations.${i}.status`, 'flow', 'Flow status')}${rev}</div>
           <div class="tablewrap"><table class="data" style="min-width:0;font-size:12.5px"><tbody>
@@ -2463,7 +2471,7 @@ function viewDeliverability() {
         <label for="chk${i}" class="${c.done ? 'done' : ''}">${esc(c.text)}</label></li>`).join('')}</ul>
     </section>
     <section class="card c5">
-      ${cardH('info', 'How to Read the Signals', 'coral')}
+      ${cardH('info', 'How to Read the Signals', '', 'coral')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">Complaints are the loudest signal.</strong> Above 0.1% (Gmail's stated line is 0.3% with 0.1% preferred), placement degrades fast. Cut cold segments before cutting frequency.</p>
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">Bounces over ${fmt.num(b.bounce)}%</strong> usually mean stale addresses — run hygiene before the next big send.</p>
@@ -2485,7 +2493,7 @@ function viewSegments() {
       return `
       <section class="card c4">
         <div class="card-h acc-aqua">${icon('users', 15)}<h3 style="text-transform:none;letter-spacing:0;font-size:13.5px">${edField(`segments.${i}.name`, {min: 12, max: 20, label: 'Segment name'})}</h3>
-          <span class="h-aux"><button class="rowdel" style="opacity:.6" data-action="delrow" data-list="segments" data-i="${i}" aria-label="Delete segment">${icon('x', 13)}</button></span></div>
+          <span class="h-aux"><button class="rowedit" data-action="editrow" data-list="segments" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="segments" data-i="${i}" aria-label="Delete segment">${icon('x', 13)}</button></span></div>
         <div class="card-b">
           <div style="margin-bottom:10px">${cycleChip(`segments.${i}.status`, 'segment', 'Segment health')}</div>
           <div class="tiles" style="grid-template-columns:1fr 1fr">
@@ -2518,7 +2526,7 @@ function viewHygiene() {
       ${tile('Suppressed', edField('hygiene.suppressed', {type: 'num', min: 4, label: 'Suppressed addresses'}), 'sunset + hard bounces')}
     </div></div></section>
     <section class="card c6">
-      ${cardH('pulse', 'Hygiene Cadence', 'golden')}
+      ${cardH('pulse', 'Hygiene Cadence', '', 'golden')}
       <div class="card-b"><div class="tablewrap"><table class="data" style="min-width:0"><tbody>
         <tr><th scope="row">Sunset policy</th><td>Suppress after ${edField('hygiene.sunsetDays', {type: 'num', min: 3, label: 'Sunset days'})} days inactive</td></tr>
         <tr><th scope="row">Cleaning cadence</th><td>${edField('hygiene.cleanCadence', {min: 10, label: 'Cleaning cadence'})}</td></tr>
@@ -2535,7 +2543,7 @@ function viewHygiene() {
           <tr><td>${edField(`hygiene.sources.${i}.name`, {min: 14, label: 'Source name'})}</td>
           <td class="num">${edField(`hygiene.sources.${i}.subs`, {type: 'num', min: 5, label: 'Source subscribers'})}</td>
           <td class="num derived">${totalSrc && num(s.subs) !== null ? fmt.pct(num(s.subs) / totalSrc * 100, 0) : '—'}</td>
-          <td><button class="rowdel" data-action="delrow" data-list="hygiene.sources" data-i="${i}" aria-label="Delete source">${icon('x', 13)}</button></td></tr>`).join('')}</tbody></table></div>
+          <td><button class="rowedit" data-action="editrow" data-list="hygiene.sources" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="hygiene.sources" data-i="${i}" aria-label="Delete source">${icon('x', 13)}</button></td></tr>`).join('')}</tbody></table></div>
         <button class="addrow" data-action="addrow" data-list="hygiene.sources">${icon('plus', 13)}Add source</button></div>
     </section>
   </div>`;
@@ -2544,12 +2552,12 @@ function viewHygiene() {
 /* ---------------- PLANNER ---------------- */
 function plannerEvents(d) {
   const evs = [];
-  (d.campaigns || []).forEach(c => { if (c.date) evs.push({date: c.date, title: c.title, kind: 'campaign'}); });
-  (d.schedule || []).forEach(s => { if (s.date) evs.push({date: s.date, title: s.title, kind: s.type === 'review' ? 'review' : 'campaign'}); });
-  (d.automations || []).forEach(a => {
+  (d.campaigns || []).forEach((c, i) => { if (c.date) evs.push({date: c.date, title: c.title, kind: 'campaign', list: 'campaigns', i}); });
+  (d.schedule || []).forEach((s, i) => { if (s.date) evs.push({date: s.date, title: s.title, kind: s.type === 'review' ? 'review' : 'campaign', list: 'schedule', i}); });
+  (d.automations || []).forEach((a, i) => {
     if (a.lastReviewed) {
       const due = new Date(a.lastReviewed + 'T00:00:00'); due.setDate(due.getDate() + 30);
-      evs.push({date: due.toISOString().slice(0, 10), title: `Review: ${a.name}`, kind: 'review'});
+      evs.push({date: due.toISOString().slice(0, 10), title: `Review: ${a.name}`, kind: 'review', list: 'automations', i});
     }
   });
   return evs;
@@ -2567,7 +2575,7 @@ function viewPlanner() {
   for (let i = 0; i < startDow; i++) cells.push(null);
   for (let day = 1; day <= dim; day++) cells.push(day);
   while (cells.length % 7) cells.push(null);
-  const tISO = todayISO();
+  const tISO = localISO(new Date());
   const week = evs.filter(e => { const du = daysUntil(e.date); return du !== null && du >= 0 && du <= 6; })
     .sort((a, b) => a.date.localeCompare(b.date));
   return `
@@ -2575,10 +2583,11 @@ function viewPlanner() {
     <button class="btn" data-action="month" data-dir="-1" aria-label="Previous month">←</button>
     <strong style="min-width:130px;text-align:center">${base.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</strong>
     <button class="btn" data-action="month" data-dir="1" aria-label="Next month">→</button>
-    ${ui.monthOffset !== 0 ? `<button class="btn" data-action="month" data-dir="0">Today</button>` : ''}`)}
+    ${ui.monthOffset !== 0 ? `<button class="btn" data-action="month" data-dir="0">Today</button>` : ''}
+    <button class="btn btn-primary" data-action="addrow" data-list="campaigns">${icon('plus', 14)}Add campaign</button>`)}
   <div class="grid">
     <section class="card c8">
-      ${cardH('calendar', 'Monthly Calendar', 'coral')}
+      ${cardH('calendar', 'Monthly Calendar', '', 'coral')}
       <div class="card-b">
         <div class="cal">
           ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dw => `<div class="dow">${dw}</div>`).join('')}
@@ -2587,7 +2596,7 @@ function viewPlanner() {
             const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvs = byDate[iso] || [];
             const busy = dayEvs.length > 2;
-            return `<div class="day ${iso === tISO ? 'today' : ''}" role="group" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? dayEvs.map(e => e.title).join('; ') : 'no items'}${busy ? '. Busy day' : ''}">
+            return `<div class="day ${iso === tISO ? 'today' : ''}" data-action="daypeek" data-date="${iso}" role="button" tabindex="0" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? dayEvs.map(e => e.title).join('; ') : 'no items'}${busy ? '. Busy day' : ''}. Click to open this day">
               <span class="dnum">${day}</span>
               ${busy ? `<span class="busy" title="More than 2 items — consider spacing sends">busy</span>` : ''}
               ${dayEvs.slice(0, 3).map(e => `<span class="ev ${e.kind === 'review' ? 'ev-auto' : ''}">${esc(e.title)}</span>`).join('')}
@@ -2603,9 +2612,9 @@ function viewPlanner() {
       </div>
     </section>
     <section class="card c4">
-      ${cardH('clock', 'This Week', 'golden')}
+      ${cardH('clock', 'This Week', '', 'golden')}
       ${week.length ? `<ul class="plainlist">${week.map(e => `
-        <li><span class="li-date">${relDay(e.date)}</span><span class="li-main">${esc(e.title)}<div class="li-sub">${e.kind === 'review' ? 'Review checkpoint' : 'Campaign send'}</div></span></li>`).join('')}</ul>`
+        <li class="rowlink" data-action="editrow" data-list="${e.list}" data-i="${e.i}" role="button" tabindex="0" title="Click to edit"><span class="li-date">${relDay(e.date)}</span><span class="li-main">${esc(e.title)}<div class="li-sub">${e.kind === 'review' ? 'Review checkpoint' : 'Campaign send'}</div></span></li>`).join('')}</ul>`
       : `<div class="emptystate">A quiet week — add checkpoints below or schedule a campaign.</div>`}
       <div class="card-b" style="border-top:1px solid var(--hairline)">
         <div class="t-label" style="font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600;margin-bottom:6px">Custom checkpoints</div>
@@ -2613,7 +2622,7 @@ function viewPlanner() {
           <div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12.5px">
             ${edField(`schedule.${i}.date`, {type: 'date', min: 10, label: 'Checkpoint date'})}
             ${edField(`schedule.${i}.title`, {min: 16, max: 26, label: 'Checkpoint title'})}
-            <button class="rowdel" data-action="delrow" data-list="schedule" data-i="${i}" aria-label="Delete checkpoint">${icon('x', 13)}</button>
+            <button class="rowedit" data-action="editrow" data-list="schedule" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="schedule" data-i="${i}" aria-label="Delete checkpoint">${icon('x', 13)}</button>
           </div>`).join('')}
         <button class="addrow" data-action="addrow" data-list="schedule">${icon('plus', 13)}Add checkpoint</button>
       </div>
@@ -2631,7 +2640,7 @@ function ideaCard(listKey, title, ic, ph, acc) {
     <div class="card-b flush">
       ${items.length ? `<ul class="plainlist">${items.map((it, i) => `
         <li>${edField(`ideas.${listKey}.${i}.text`, {min: 24, max: 40, label: title + ' entry'})}
-        <button class="rowdel" data-action="delrow" data-list="ideas.${listKey}" data-i="${i}" aria-label="Delete">${icon('x', 13)}</button></li>`).join('')}</ul>`
+        <button class="rowedit" data-action="editrow" data-list="ideas.${listKey}" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="ideas.${listKey}" data-i="${i}" aria-label="Delete">${icon('x', 13)}</button></li>`).join('')}</ul>`
       : `<div class="emptystate">${ph}</div>`}
       <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ideas.${listKey}">${icon('plus', 13)}Add</button>
     </div>
@@ -2654,7 +2663,7 @@ function viewGoals() {
   ${viewHead('Goals & Benchmarks', 'Targets vs. actuals — the report card you set for yourself.', `<button class="btn btn-primary" data-action="addrow" data-list="goals">${icon('plus', 14)}Add goal</button>`)}
   <div class="grid">
     <section class="card">
-      ${cardH('target', 'Goal Tracker', 'golden')}
+      ${cardH('target', 'Goal Tracker', '', 'golden')}
       <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:640px">
         <thead><tr><th>Goal</th><th class="num">Target</th><th class="num">Actual</th><th style="width:32%">Progress</th><th></th></tr></thead>
         <tbody>${d.goals.map((g, i) => {
@@ -2668,7 +2677,7 @@ function viewGoals() {
               <span class="meterbar" style="height:7px;max-width:170px"><i style="width:${pct2 === null ? 0 : Math.min(pct2, 100)}%"></i></span>
               <span class="derived" style="font-size:12px">${p === null ? '—' : fmt.pct(p * 100, 0)}</span>
               ${p !== null && p >= 1 ? staticChip('good', 'checkcircle', 'Hit') : ''}</div></td>
-            <td><button class="rowdel" data-action="delrow" data-list="goals" data-i="${i}" aria-label="Delete goal">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="goals" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="goals" data-i="${i}" aria-label="Delete goal">${icon('x', 13)}</button></td>
           </tr>`; }).join('')}</tbody></table></div></div>
     </section>
     <section class="card c6">
@@ -2751,7 +2760,7 @@ function viewTests() {
             <td>${edField(`tests.${i}.winner`, {min: 8, max: 14, label: 'Winner'})}</td>
             <td>${edField(`tests.${i}.learning`, {min: 20, max: 36, label: 'Learning'})}</td>
             <td>${cycleChip(`tests.${i}.status`, 'test', 'Test status')}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="tests" data-i="${i}" aria-label="Delete test">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="tests" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="tests" data-i="${i}" aria-label="Delete test">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div></div>
     </section>
   </div>`;
@@ -2856,6 +2865,7 @@ function render() {
   const main = $('#main');
   let modal = '';
   if (!modal && ui.addModal) modal = addModalHTML();
+  if (!modal && ui.dayPeek) modal = dayPeekHTML();
   main.innerHTML = demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
@@ -2891,13 +2901,13 @@ function listRef(name) {
   return name.split('.').reduce((o, k) => o[k], D());
 }
 const NEW_ROW = {
-  campaigns: () => ({id: uid(), title: 'New campaign', subject: '', segment: '', date: todayISO(), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'idea', variant: '', notes: ''}),
+  campaigns: () => ({id: uid(), title: 'New campaign', subject: '', segment: '', date: localISO(new Date()), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'idea', variant: '', notes: ''}),
   automations: () => ({id: uid(), name: 'New flow', trigger: '', emails: 1, status: 'needs review', revenue: null, lastReviewed: ''}),
   segments: () => ({id: uid(), name: 'New segment', size: null, openRate: null, revenue: null, ltv: null, status: 'watch', nextAction: ''}),
   domains: () => ({id: uid(), domain: 'sub.yourbrand.com', spf: 'unknown', dkim: 'unknown', dmarc: 'unknown', warmup: 'not started', ip: 'shared'}),
   'hygiene.sources': () => ({id: uid(), name: 'New source', subs: null}),
-  wins: () => ({id: uid(), date: todayISO(), title: 'What worked', metric: '', value: '', note: '', img: ''}),
-  schedule: () => ({id: uid(), title: 'New checkpoint', date: todayISO(), type: 'review'}),
+  wins: () => ({id: uid(), date: localISO(new Date()), title: 'What worked', metric: '', value: '', note: '', img: ''}),
+  schedule: () => ({id: uid(), title: 'New checkpoint', date: localISO(new Date()), type: 'review'}),
   'ideas.campaigns': () => ({id: uid(), text: 'New idea…'}),
   'ideas.subjects': () => ({id: uid(), text: 'New subject line…'}),
   'ideas.offers': () => ({id: uid(), text: 'New offer…'}),
@@ -2987,10 +2997,37 @@ const ADD_FORMS = {
     {k: 'status', label: 'Test status', options: () => cycleOptions('test')},
   ]},
 };
+/* Day peek — click a calendar day to see everything on it and add a send or
+   checkpoint with that day's date pre-filled. On phones this IS the calendar's
+   tap surface: below 700px the event chips are hidden and only dots remain. */
+function dayPeekHTML() {
+  const d = D(), iso = ui.dayPeek;
+  const evs = plannerEvents(d).filter(e => e.date === iso);
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="Day view">
+    <div class="pm-scrim" data-action="daypeekclose"></div>
+    <div class="pm-panel pm-form">
+      <div class="pm-head">${icon('calendar', 14)}<h3>${fmtDate(iso, {weekday: 'long', month: 'long', day: 'numeric'})}</h3>
+        <button class="btn btn-ghost" data-action="daypeekclose" aria-label="Close" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+      ${evs.length ? `<ul class="plainlist">
+        ${evs.map(e => `
+          <li class="rowlink" data-action="editrow" data-list="${e.list}" data-i="${e.i}" role="button" tabindex="0" title="Click to edit">
+            <span class="li-main">${esc(e.title)}<div class="li-sub">${e.kind === 'review' ? 'Review checkpoint' : 'Campaign send'}</div></span>
+            ${e.kind === 'review' ? staticChip('neutral', 'clock', 'review') : staticChip('good', 'mail', 'send')}</li>`).join('')}
+      </ul>` : `<div class="emptystate">Nothing on this day yet.</div>`}
+      <div class="af-foot"><button class="btn btn-primary" data-action="addrow" data-list="campaigns" data-date="${iso}">${icon('plus', 14)}Add campaign</button><button class="btn" data-action="addrow" data-list="schedule" data-date="${iso}">${icon('plus', 14)}Add checkpoint</button></div>
+    </div></div>`;
+}
+
 function addModalHTML() {
-  const {list, row} = ui.addModal;
+  // Two modes from one form. Add: ui.addModal = {list, row: NEW_ROW seed} — the row
+  // is pushed only on Save. Edit: ui.addModal = {list, i} — the live row is read
+  // fresh each render, every field pre-fills, and the footer gains Delete.
+  const {list, i} = ui.addModal;
+  const editMode = i !== undefined;
+  const row = editMode ? listRef(list)[i] : ui.addModal.row;
   const spec = ADD_FORMS[list];
-  if (!spec) return '';
+  if (!spec || !row) return '';
+  const title = editMode ? spec.title.replace(/^Add\b/, 'Edit') : spec.title;
   const d = D();
   const fieldHTML = f => {
     const seed = row[f.k];
@@ -2999,8 +3036,8 @@ function addModalHTML() {
       return `<label class="af-row"><span class="af-l">${esc(f.label)}</span>
         <select class="af-in" data-fkey="${f.k}">${opts.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(seed ?? '') ? 'selected' : ''}>${esc(o.t)}</option>`).join('')}</select></label>`;
     }
-    // text starts empty (its seed becomes the placeholder); dates & numbers pre-fill
-    const val = f.type === 'num' ? (num(seed) ?? '') : f.type === 'date' ? (seed || '') : '';
+    // adding: text starts empty (its seed becomes the placeholder); editing: everything pre-fills
+    const val = f.type === 'num' ? (num(seed) ?? '') : f.type === 'date' ? (seed || '') : editMode ? (seed ?? '') : '';
     const attrs = [`class="af-in"`, `data-fkey="${f.k}"`, `data-ftype="${f.type || 'text'}"`,
       `type="${f.type === 'date' ? 'date' : 'text'}"`, `value="${esc(val)}"`, `aria-label="${esc(f.label)}"`];
     if (f.type === 'num') attrs.push('inputmode="decimal"', 'autocomplete="off"');
@@ -3009,13 +3046,13 @@ function addModalHTML() {
     if (f.type === 'num' && ph) attrs.push(`placeholder="${esc(ph)}"`);
     return `<label class="af-row"><span class="af-l">${esc(f.label)}</span><input ${attrs.join(' ')}></label>`;
   };
-  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="${esc(spec.title)}">
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="pm-scrim" data-action="addcancel"></div>
     <div class="pm-panel pm-form">
-      <div class="pm-head">${icon('plus', 14)}<h3>${esc(spec.title)}</h3>${spec.hint ? `<span class="pm-hint">${esc(spec.hint)}</span>` : ''}
+      <div class="pm-head">${icon(editMode ? 'sliders' : 'plus', 14)}<h3>${esc(title)}</h3>${spec.hint && !editMode ? `<span class="pm-hint">${esc(spec.hint)}</span>` : ''}
         <button class="btn btn-ghost" data-action="addcancel" aria-label="Cancel" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
       <div class="addform">${spec.fields.map(fieldHTML).join('')}</div>
-      <div class="af-foot"><button class="btn" data-action="addcancel">Cancel</button><button class="btn btn-primary" data-action="addsave">${icon('check', 14)}Save</button></div>
+      <div class="af-foot">${editMode ? `<button class="btn btn-danger" data-action="editdel" style="margin-right:auto">${icon('x', 13)}Delete</button>` : ''}<button class="btn" data-action="addcancel">Cancel</button><button class="btn btn-primary" data-action="addsave">${icon('check', 14)}Save</button></div>
     </div></div>`;
 }
 
@@ -3043,6 +3080,7 @@ document.addEventListener('click', e => {
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
     ui.addModal = null;
+    ui.dayPeek = null;
     document.body.classList.remove('nav-open');
     try { history.replaceState(null, '', '#' + ui.view); } catch (err) {}
     animPending = true;
@@ -3087,6 +3125,13 @@ document.addEventListener('click', e => {
   else if (act === 'month') {
     const dir = parseInt(btn.dataset.dir, 10);
     ui.monthOffset = dir === 0 ? 0 : ui.monthOffset + dir;
+    ui.dayPeek = null;
+    render();
+  } else if (act === 'daypeek') {
+    ui.dayPeek = btn.dataset.date;
+    render();
+  } else if (act === 'daypeekclose') {
+    ui.dayPeek = null;
     render();
   } else if (act === 'sort') {
     const t = btn.dataset.table, k = btn.dataset.key;
@@ -3097,28 +3142,48 @@ document.addEventListener('click', e => {
     // every add button gets the small add-form first — nothing lands in the
     // dashboard until the user fills it in and hits Save
     const list = btn.dataset.list;
-    ui.addModal = {list, row: NEW_ROW[list]()};
+    const row = NEW_ROW[list]();
+    if (btn.dataset.date) row.date = btn.dataset.date; // added from a calendar day
+    ui.addModal = {list, row};
     render();
     const first = document.querySelector('.pmodal .af-in');
     if (first && window.matchMedia('(hover:hover) and (pointer:fine)').matches) first.focus();
   } else if (act === 'addcancel') {
     ui.addModal = null;
     render();
+  } else if (act === 'editrow') {
+    ui.dayPeek = null;
+    ui.addModal = {list: btn.dataset.list, i: parseInt(btn.dataset.i, 10)};
+    render();
+    const first = document.querySelector('.pmodal .af-in');
+    if (first && window.matchMedia('(hover:hover) and (pointer:fine)').matches) first.focus();
+  } else if (act === 'editdel') {
+    const {list, i} = ui.addModal;
+    const arr = listRef(list);
+    const label = arr[i] && (arr[i].title || arr[i].name || arr[i].domain || arr[i].text) || 'this row';
+    if (!confirm(`Delete “${String(label).slice(0, 60)}”?`)) return;
+    arr.splice(i, 1);
+    ui.addModal = null;
+    save(true); render();
+    toast('✓ Deleted');
   } else if (act === 'addsave') {
-    const {list, row} = ui.addModal;
+    const {list, i} = ui.addModal;
+    const editMode = i !== undefined;
+    const row = editMode ? listRef(list)[i] : ui.addModal.row;
     document.querySelectorAll('.pmodal [data-fkey]').forEach(inp => {
       const k = inp.dataset.fkey;
       const v = String(inp.value ?? '').trim();
-      if (inp.dataset.ftype === 'num') { if (v !== '') row[k] = num(v); }
-      else if (v !== '') row[k] = v;
+      // adding keeps the seed when a field is left blank; editing lets you clear it
+      if (inp.dataset.ftype === 'num') { if (v !== '') row[k] = num(v); else if (editMode) row[k] = null; }
+      else if (v !== '' || editMode) row[k] = v;
     });
-    listRef(list).push(row);
+    if (!editMode) listRef(list).push(row);
     // a campaign saved while the status filter hides its status would vanish
-    // silently — reset the filter so the new row is always visible
+    // silently — reset the filter so the row is always visible
     if (list === 'campaigns') ui.filterCampaigns = 'all';
     ui.addModal = null;
     save(true); render();
-    toast('✓ Added — tap any of its fields to edit it later');
+    toast(editMode ? '✓ Saved' : '✓ Added — tap any of its fields to edit it later');
   } else if (act === 'delrow') {
     const list = btn.dataset.list, i = parseInt(btn.dataset.i, 10);
     const arr = listRef(list);
@@ -3234,6 +3299,8 @@ document.addEventListener('keydown', e => {
   if (!el.classList || !el.classList.contains('ed')) {
     if (e.key === 'Escape' && document.body.classList.contains('nav-open')) document.body.classList.remove('nav-open');
     else if (e.key === 'Escape' && ui.addModal) { ui.addModal = null; render(); }
+    else if (e.key === 'Escape' && ui.dayPeek) { ui.dayPeek = null; render(); }
+    else if (e.key === 'Enter' && e.target.dataset && e.target.dataset.action === 'daypeek') { e.preventDefault(); e.target.click(); }
     else if (e.key === 'Enter' && ui.addModal && el.classList && el.classList.contains('af-in') && el.tagName === 'INPUT') {
       const saveBtn = document.querySelector('.pmodal [data-action="addsave"]');
       if (saveBtn) saveBtn.click();
@@ -3291,7 +3358,7 @@ document.addEventListener('change', e => {
 render();
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace('#', '');
-  if (VIEWS.some(v => v.id === h) && h !== ui.view) { ui.view = h; animPending = true; render(); }
+  if (VIEWS.some(v => v.id === h) && h !== ui.view) { ui.dayPeek = null; ui.view = h; animPending = true; render(); }
 });
 
 </script>
