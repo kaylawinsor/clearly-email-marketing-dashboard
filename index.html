@@ -2913,18 +2913,13 @@ const NEW_ROW = {
 const cycleOptions = set => CYCLE_SETS[set].values.map(v => ({v, t: CYCLE_SETS[set].meta[v][2]}));
 const ADD_FORMS = {
   campaigns: {title: 'Add campaign', hint: 'counts and rates can come later', fields: [
+    // planning fields only, on purpose: counts, revenue and the A/B variant are
+    // typed into the row after the send — a 12-field form buries its own Save button
     {k: 'title', label: 'Campaign name', ph: 'e.g. Spring launch'},
     {k: 'subject', label: 'Subject line', ph: 'subject line…'},
     {k: 'segment', label: 'Segment', ph: 'who gets it?'},
     {k: 'date', label: 'Send date', type: 'date'},
     {k: 'status', label: 'Status', options: () => cycleOptions('campaign')},
-    {k: 'sent', label: 'Sent count', type: 'num'},
-    {k: 'opened', label: 'Opens', type: 'num'},
-    {k: 'clicked', label: 'Clicks', type: 'num'},
-    {k: 'conversions', label: 'Conversions', type: 'num'},
-    {k: 'revenue', label: 'Revenue ($)', type: 'num'},
-    {k: 'variant', label: 'A/B variant', ph: 'e.g. subject test B'},
-    {k: 'notes', label: 'Notes'},
   ]},
   automations: {title: 'Add flow', fields: [
     {k: 'name', label: 'Flow name', ph: 'e.g. Welcome series'},
