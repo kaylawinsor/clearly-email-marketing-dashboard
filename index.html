@@ -279,6 +279,7 @@ tr:hover .rowdel,.rowdel:focus-visible,.rowdel:hover,
 tr:hover .rowedit,.rowedit:focus-visible,.rowedit:hover{opacity:1}
 .rowdel:hover{color:var(--critical);background:var(--critical-soft)}
 .rowedit:hover{color:var(--teal-deep);background:var(--teal-soft)}
+@media (hover:none){.rowdel,.rowedit{padding:8px 9px;font-size:14px}}
 .rowlink{cursor:pointer}
 .rowlink:hover{background:var(--surface-alt)}
 .cal .day[data-action]{cursor:pointer}
@@ -921,6 +922,15 @@ function clearSampleData(d) {
   // the sample's checked-off items are sample data like any other row
   if (Array.isArray(d.checklist)) d.checklist.forEach(c => { c.done = false; });
   return d;
+}
+/* 'Keep it for now' must not strand the buyer: the sample rows are still in the
+   file, so Start Here keeps offering the bulk clear until they're actually gone. */
+function sampleRowsPresent() {
+  const d = state.data || {};
+  return SAMPLE_ROW_PATHS.some(pth => {
+    const arr = pth.split('.').reduce((o, k) => o && o[k], d);
+    return Array.isArray(arr) && arr.some(r => r && r.sample);
+  });
 }
 function sampleActive() {
   return state.meta && state.meta.sample === 'active';
@@ -1734,7 +1744,7 @@ function revenueSeries(d) {
       const [qy, qm] = qStart.split('-').map(Number);
       labels.push(`Q${Math.floor((qm - 1) / 3) + 1} '${String(qy).slice(2)}`);
     }
-    return {series, labels, paths: null, aux: 'quarterly totals · last 8 quarters · hover for values'};
+    return {series, labels, paths: null, aux: 'quarterly totals · last 8 quarters · tap or hover for values'};
   }
   const keys = p.mode === 'year'
     ? Array.from({length: 12}, (_, i) => `${p.ref.split('-')[0]}-${String(i + 1).padStart(2, '0')}`)
@@ -1743,7 +1753,7 @@ function revenueSeries(d) {
     series: keys.map(mv),
     labels: keys.map(k => refDate(k).toLocaleDateString('en-US', {month: 'short'})),
     paths: keys.map(k => `months.${k}.revenue`),
-    aux: p.mode === 'year' ? `${p.ref.split('-')[0]} by month · hover for values` : `12 months ending ${monthLabel(p.ref, {month: 'short', year: 'numeric'})} · hover for values`,
+    aux: p.mode === 'year' ? `${p.ref.split('-')[0]} by month · tap or hover for values` : `12 months ending ${monthLabel(p.ref, {month: 'short', year: 'numeric'})} · tap or hover for values`,
   };
 }
 /* A flow value: editable in Monthly view, an auto-summed rollup otherwise */
@@ -2470,7 +2480,7 @@ function viewDeliverability() {
   ${periodBar()}
   <div class="grid">
     <section class="card c8">
-      ${cardH('shield', 'Sender Score — 12-Month History', 'hover for monthly values', 'aqua')}
+      ${cardH('shield', 'Sender Score — 12-Month History', 'tap or hover for monthly values', 'aqua')}
       <div class="card-b">
         <div class="tiles" style="margin-bottom:12px">
           ${tile('Current score', edField('metrics.senderScore', {type: 'num', min: 3, label: 'Sender score'}) + '<span class="unit">/100</span>', num(m.senderScore) === null ? '' : num(m.senderScore) >= 90 ? staticChip('good', 'checkcircle', 'Strong standing') : staticChip('warning', 'alert', 'Below 90 — investigate'))}
@@ -2824,7 +2834,7 @@ function startData() {
     </div></section>`;
 }
 function startSample() {
-  const active = sampleActive();
+  const active = sampleRowsPresent();
   return `<section class="card c4">
     ${cardH('bulb', 'The example data')}
     <div class="card-b">
@@ -2861,7 +2871,7 @@ function viewStart() {
     <section class="card c4">
       ${cardH('bulb', 'If you get stuck')}
       <div class="card-b">
-        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you hover.</p>
+        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you tap or hover on them.</p>
         <p style="margin:0">Still stuck? Message me through the shop — I answer my own messages, usually within a few hours.</p>
       </div></section>
   </div>`;
