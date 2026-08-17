@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clearly Email Marketing Dashboard — Everything, clearly.</title>
+<title>Clearly Email Marketing Dashboard PRO — Everything, clearly.</title>
 <!-- Web-app behavior when pinned to an iOS/Android home screen (hosted build);
      harmless no-ops when the file is opened directly. -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Clearly Email">
+<meta name="apple-mobile-web-app-title" content="Clearly PRO">
 <meta name="theme-color" content="#F2F5F6">
 <!-- App icon (embedded, zero-network) — shows in browser tabs and as the
      home-screen icon when buyers "Add to Home Screen" on phone/tablet -->
@@ -114,6 +114,9 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.5}
+/* No layout may ever widen the page itself — tables scroll inside .tablewrap.
+   iOS in particular lets you pan to fixed/absolute elements past the right edge. */
+html,body{overflow-x:clip}
 img,svg{max-width:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 :focus-visible{outline:2px solid var(--sage);outline-offset:2px;border-radius:4px}
@@ -293,6 +296,34 @@ tr:hover .rowdel,.rowdel:focus-visible{opacity:1}
 .spark circle.pt.on{opacity:1}
 .spark line.cursor{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3;opacity:0;pointer-events:none}
 .spark line.cursor.on{opacity:1}
+/* Wins — thumbnails, badges, hall-of-fame cards. Thumb treatment ported from the social
+   planner so the two products handle attached photos identically. */
+.thumb{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;display:grid;place-items:center;
+  border:1px solid var(--hairline);background:var(--surface-alt);min-width:0}
+.thumb .th-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.thumb.drop{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+.th-add{display:inline-flex;align-items:center;gap:5px;border:1px dashed var(--hairline);background:var(--surface);
+  color:var(--ink-2);border-radius:8px;padding:5px 9px;font:600 11.5px var(--sans);cursor:pointer}
+.th-add:hover{color:var(--teal-deep);border-color:var(--teal)}
+.th-clear{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:7px;border:1px solid var(--hairline);
+  background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;opacity:.9}
+.th-clear:hover{color:var(--critical);border-color:var(--critical)}
+.winrow{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:14px 16px;border-bottom:1px solid var(--hairline);align-items:start}
+.winrow:last-child{border-bottom:none}
+.winmeta{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.winmeta .wm-val{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.badge{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:var(--radius-s);background:var(--surface-alt);border:1px solid var(--hairline)}
+.badge.earned{background:var(--good-soft);border-color:transparent}
+.badge .bg-ic{flex:0 0 auto;margin-top:1px;color:var(--ink-2)}
+.badge.earned .bg-ic{color:var(--good-deep)}
+.badge .bg-t{font-weight:700;font-size:12.5px;color:var(--ink);line-height:1.3}
+.badge .bg-s{font-size:11px;color:var(--ink-2);margin-top:3px;line-height:1.4}
+/* .meterbar is flex:1 by default, which collapses outside a flex row. */
+.badge .meterbar{display:block;width:100%;margin:7px 0 0;flex:none}
+.hof-rank{font-family:var(--display);font-size:11px;font-weight:800;color:var(--aqua-deep);letter-spacing:.06em}
+.hof-subj{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--ink);line-height:1.35;margin:4px 0 8px}
+@media (max-width:700px){.winrow{grid-template-columns:1fr}}
+@media print{.th-add,.th-clear{display:none}}
 .tooltip{position:fixed;z-index:80;background:var(--tip-bg);color:var(--tip-ink);font-size:11.5px;padding:5px 9px;border-radius:7px;
   pointer-events:none;white-space:nowrap;box-shadow:var(--shadow);transform:translate(-50%,calc(-100% - 9px))}
 /* Horizontal bar chart (single series, Coral, direct labels) */
@@ -315,6 +346,8 @@ details.tablefall table{margin-top:6px}
 .gauge .track{stroke:var(--hairline)}
 .risknote{font-size:12.5px;color:var(--ink-2);text-align:center;padding:0 14px 6px;line-height:1.45}
 .risknote strong{color:var(--ink)}
+/* --ink-2, not --muted: 11.5px at --muted is ~3.1:1 on --surface, under the 4.5:1 floor. */
+.covernote{font-size:11.5px;color:var(--ink-2);text-align:center;padding:0 16px 8px;line-height:1.5}
 .subscores{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;width:100%;padding:10px 16px 4px;border-top:1px solid var(--hairline);margin-top:4px}
 .subscore{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--ink-2)}
 .subscore b{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
@@ -451,6 +484,22 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
   *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
 
+/* Modal overlay + "Add" form — add buttons open this instead of dropping a placeholder row */
+.pmodal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:18px}
+.pmodal .pm-scrim{position:absolute;inset:0;background:rgba(20,30,34,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.pmodal .pm-panel{position:relative;width:min(470px,94vw);max-height:92vh;overflow:auto;border-radius:var(--radius);box-shadow:0 24px 80px -24px rgba(0,0,0,.5);background:var(--surface)}
+.pmodal .pm-head{display:flex;align-items:center;gap:9px;padding:11px 16px;background:var(--surface-alt);border-bottom:1px solid var(--hairline);position:sticky;top:0;z-index:1}
+.pmodal .pm-head h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.11em;font-weight:700}
+.pmodal .pm-head .pm-hint{font-size:11.5px;color:var(--muted);font-style:italic}
+.pm-form{width:min(420px,94vw)}
+.addform{display:grid;gap:12px;padding:16px}
+.af-row{display:grid;gap:5px}
+.af-l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.addform .af-in{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--hairline);border-radius:9px;padding:8px 10px;width:100%;box-sizing:border-box;min-height:40px}
+.addform .af-in::placeholder{color:var(--muted);opacity:.8}
+.addform .af-in:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+.af-foot{display:flex;justify-content:flex-end;gap:8px;padding:2px 16px 16px}
+
 /* ============ Print (Client Report) ============ */
 @media print{
   body{background:#fff}
@@ -492,6 +541,7 @@ code{background:var(--surface-alt);border:1px solid var(--hairline);border-radiu
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="tooltip" class="tooltip" hidden></div>
 <input type="file" id="restoreFile" accept=".json,application/json" hidden aria-hidden="true">
+<input type="file" id="winImgFile" accept="image/*" hidden aria-hidden="true">
 <script>
 'use strict';
 /* ================================================================
@@ -504,6 +554,11 @@ code{background:var(--surface-alt);border:1px solid var(--hairline);border-radiu
    can't replace the product. */
 const DEMO = true;
 const DEMO_LOCKED = true;
+/* Which edition this build is. Each edition is produced by physically removing
+   the other's views from the shared source at build time — see src/edition.awk.
+   This is a label, not a gate: it namespaces saved data and backups so two
+   editions can sit in one folder without overwriting each other. */
+const EDITION = 'pro';
 
 const ICONS = {
   home:'<path d="M3 9.5 12 3l9 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 20Z"/><path d="M9 21.5v-8h6v8"/>',
@@ -512,6 +567,8 @@ const ICONS = {
   shield:'<path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10Z"/>',
   users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75"/>',
   pulse:'<path d="M22 12h-4l-3 8L9 4l-3 8H2"/>',
+  medal:'<circle cx="12" cy="15" r="6.3"/><path d="m8.6 9.4-3.1-6.9h13l-3.1 6.9"/>',
+  image:'<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.5" cy="10" r="1.8"/><path d="m3.5 17 5-4.5 3.5 3 3-2.5 5.5 4.5"/>',
   calendar:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9.5h18"/>',
   bulb:'<path d="M9 18h6M10 21.5h4"/><path d="M12 2.5a6.5 6.5 0 0 0-3.7 11.8c.7.5 1.2 1.3 1.2 2.2v.5h5v-.5c0-.9.5-1.7 1.2-2.2A6.5 6.5 0 0 0 12 2.5Z"/>',
   target:'<circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="1.5"/>',
@@ -632,7 +689,7 @@ function starterData() {
     months: {},
     scoreTrend: [null, null, null, null, null, null, null, null, null, null, null, null],
     campaigns: [
-      {id: uid(), title: 'My first tracked campaign', segment: 'Full list', date: todayISO(), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'draft', variant: '', notes: ''},
+      {id: uid(), title: 'My first tracked campaign', subject: '', segment: 'Full list', date: todayISO(), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'draft', variant: '', notes: ''},
     ],
     automations: [
       {id: uid(), name: 'Welcome series', trigger: 'New subscriber', emails: 3, status: 'needs review', revenue: null, lastReviewed: ''},
@@ -657,6 +714,7 @@ function starterData() {
       {id: uid(), name: 'Subject: curiosity vs. benefit', hypothesis: 'Benefit-led subject lifts opens', metric: 'Open rate', a: '', b: '', winner: '', learning: '', status: 'planned'},
     ],
     checklist: baseChecklist(),
+    wins: [],
     reportNotes: 'Add a short narrative for your client here — wins, risks, and the plan for next month.',
   };
 }
@@ -698,13 +756,13 @@ function sampleData() {
     months,
     scoreTrend: [69, 71, 70, 73, 74, 72, 75, 77, 76, 79, 80, 81],
     campaigns: [
-      {id: uid(), title: 'Late Summer Restock', segment: 'Engaged 90d', date: isoOffset(1), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'scheduled', variant: '', notes: 'Hero: linen collection'},
-      {id: uid(), title: 'VIP Early Access — Fall Preview', segment: 'VIP', date: isoOffset(4), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'scheduled', variant: 'A/B subject', notes: 'Gate: 24h early'},
-      {id: uid(), title: 'August Newsletter — Field Notes', segment: 'Full list (engaged)', date: isoOffset(-3), sent: 21140, opened: 9030, clicked: 720, conversions: 118, revenue: 8460, status: 'sent', variant: '', notes: ''},
-      {id: uid(), title: 'Flash: 48h Linen Weekend', segment: 'Engaged 60d', date: isoOffset(-8), sent: 18420, opened: 8110, clicked: 940, conversions: 262, revenue: 19340, status: 'sent', variant: 'B won', notes: 'Urgency subject +18% CTOR'},
-      {id: uid(), title: 'New Arrivals — Kitchen Objects', segment: 'Category: home', date: isoOffset(-13), sent: 12280, opened: 5240, clicked: 471, conversions: 96, revenue: 7120, status: 'sent', variant: '', notes: ''},
-      {id: uid(), title: 'Sunset Warning — We miss you', segment: 'Inactive 120d', date: isoOffset(-17), sent: 4310, opened: 690, clicked: 58, conversions: 9, revenue: 480, status: 'sent', variant: '', notes: 'Last touch before suppression'},
-      {id: uid(), title: 'July Newsletter — Maker Stories', segment: 'Full list (engaged)', date: isoOffset(-31), sent: 20960, opened: 8590, clicked: 640, conversions: 102, revenue: 6890, status: 'sent', variant: '', notes: ''},
+      {id: uid(), title: 'Late Summer Restock', subject: '', segment: 'Engaged 90d', date: isoOffset(1), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'scheduled', variant: '', notes: 'Hero: linen collection'},
+      {id: uid(), title: 'VIP Early Access — Fall Preview', subject: '', segment: 'VIP', date: isoOffset(4), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'scheduled', variant: 'A/B subject', notes: 'Gate: 24h early'},
+      {id: uid(), title: 'August Newsletter — Field Notes', subject: 'Field notes from a very slow August', segment: 'Full list (engaged)', date: isoOffset(-3), sent: 21140, opened: 9030, clicked: 720, conversions: 118, revenue: 8460, status: 'sent', variant: '', notes: ''},
+      {id: uid(), title: 'Flash: 48h Linen Weekend', subject: '48 hours. Then the linen goes back.', segment: 'Engaged 60d', date: isoOffset(-8), sent: 18420, opened: 8110, clicked: 940, conversions: 262, revenue: 19340, status: 'sent', variant: 'B won', notes: 'Urgency subject +18% CTOR'},
+      {id: uid(), title: 'New Arrivals — Kitchen Objects', subject: 'The kitchen things we kept for ourselves', segment: 'Category: home', date: isoOffset(-13), sent: 12280, opened: 5240, clicked: 471, conversions: 96, revenue: 7120, status: 'sent', variant: '', notes: ''},
+      {id: uid(), title: 'Sunset Warning — We miss you', subject: 'Is this goodbye?', segment: 'Inactive 120d', date: isoOffset(-17), sent: 4310, opened: 690, clicked: 58, conversions: 9, revenue: 480, status: 'sent', variant: '', notes: 'Last touch before suppression'},
+      {id: uid(), title: 'July Newsletter — Maker Stories', subject: 'The woman who weaves our throws', segment: 'Full list (engaged)', date: isoOffset(-31), sent: 20960, opened: 8590, clicked: 640, conversions: 102, revenue: 6890, status: 'sent', variant: '', notes: ''},
       {id: uid(), title: 'Labor Day teaser', segment: 'Full list (engaged)', date: isoOffset(9), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'draft', variant: '', notes: 'Copy in review'},
     ],
     automations: [
@@ -773,6 +831,10 @@ function sampleData() {
       {id: uid(), name: 'Welcome #2 send delay', hypothesis: '24h delay beats 48h for second touch', metric: 'Conversion', a: '2.1%', b: '1.7%', winner: 'A — 24h', learning: 'Shorten the gap while intent is warm.', status: 'complete'},
       {id: uid(), name: 'Plain-text founder note', hypothesis: 'Plain text lifts replies + deliverability', metric: 'Reply rate', a: '', b: '', winner: '', learning: '', status: 'running'},
     ],
+    wins: [
+      {id: uid(), date: isoOffset(-8), title: 'Urgency subject beat the soft one', metric: 'Revenue', value: '$19,340', note: 'Same creative, two subjects. "48 hours. Then the linen goes back." won on CTOR by 18% — keep the deadline explicit and name the product.', img: 'data:image/jpeg;base64,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'},
+      {id: uid(), date: isoOffset(-31), title: 'Plain-text founder note out-replied the designed send', metric: 'Reply rate', value: '4.1%', note: 'No hero image, no buttons. Replies went to a real inbox and three turned into wholesale conversations.', img: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCAEsAeADASIAAhEBAxEB/8QAGgABAQEBAQEBAAAAAAAAAAAAAAcIBgUEA//EAEMQAQAABAMGBAMFBAkCBwAAAAAXZaTiAgQFAQMVVZTRERJU0gYWkxMUU5KjByE1dDE2QVFzgbGys1KhJENFYXGDwv/EABkBAQEBAQEBAAAAAAAAAAAAAAACAQMEBf/EACURAQACAgMAAgIBBQAAAAAAAAABEgITESJRAzEUQQQyM0KBwf/aAAwDAQACEQMRAD8A+IB6nhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHtfDegcc+8f+J+w+x8v/l+bzePj/77P7niu1/Zv/6j/wDV/wDtHyTMYzML+LGMs4iT5BmdPcfIMzp7naDzbc/Xr04eOL+QZnT3HyDM6e52gbc/TTh44v5BmdPcfIMzp7naBtz9NOHji/kGZ09x8gzOnudoG3P004eOL+QZnT3HyDM6e52gbc/TTh44v5BmdPc5DPZf7pncxlvN5/sd7i3fm8PDx8Nvh4+CxpHrn8a1D+Z3n+7a7fFnllM8uPzYY4xHD4gHZ5wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB6mia5mtF+2+67vc4/tvL5vtNm3b4eHj4eHht2f3vLCYiY4kiZieYdP886n+Bk/wAmL3Hzzqf4GT/Ji9zmBGvHxe3P10/zzqf4GT/Ji9x886n+Bk/yYvc5gNePhtz9dP8APOp/gZP8mL3Hzzqf4GT/ACYvc5gNePhtz9dP886n+Bk/yYvcfPOp/gZP8mL3OYDXj4bc/XT/ADzqf4GT/Ji9x886n+Bk/wAmL3OYDXj4bc/XT/POp/gZP8mL3OdzW/xZrNb7MbzZs2Y97jxY8WzD/Rs27dvj+5+QqMYj6Zlnll9yANSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+/gmrcrzvT4+xwTVuV53p8fZaBw3T49OiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPUX4Jq3K870+PscE1bled6fH2WgN0+GiPQBydwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABKYxyCtsVZlRWMRP2jOZj6VWMcgrbCMcgrbEqF1hF5VWMcgrbCMcgrbEqCsF5VWMcgrbCMcgrbEqCsF5VWMcgrbCMcgrbEqCsF5VWMcgrbCMcgrbEqCsF5VWMcgrbCMcgrbEqCsF5VWMcgrbCMcgrbEqCsF5VWMcgrbCMcgrbEqCsF5VWMc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'},
+    ],
     checklist: cl,
     reportNotes: 'Solid month: revenue up on flat send volume, driven by the flash weekend and welcome-series conversion. Watch items — the win-back and browse-abandonment flows are both overdue for review, the 90–120d lapsing segment is decaying, and DMARC still needs a DNS record. All three are on this week.',
   };
@@ -784,8 +846,20 @@ function sampleData() {
    Row collections carry sample:true; Setup-style scalars are only reset
    if the buyer hasn't edited them (compared against a fresh sample set).
 ================================================================ */
-const SAMPLE_ROW_PATHS = ['campaigns', 'automations', 'segments', 'schedule', 'domains',
-  'goals', 'tests', 'ideas.campaigns', 'ideas.subjects', 'ideas.offers', 'hygiene.sources'];
+const SAMPLE_ROW_PATHS = [
+  'campaigns',
+  'automations',
+  'segments',
+  'schedule',
+  'domains',
+  'goals',
+  'tests',
+  'ideas.campaigns',
+  'ideas.subjects',
+  'ideas.offers',
+  'wins',
+  'hygiene.sources',
+];
 
 function atPath(o, path) {
   return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
@@ -851,25 +925,65 @@ function sampleBanner() {
 /* ================================================================
    State engine — single object, localStorage with in-memory fallback
 ================================================================ */
-const KEY = DEMO ? 'clearlyEmail.demo.v2' : 'clearlyEmail.v2';
+/* Storage is namespaced per edition AND per build. Browsers share one
+   localStorage bucket across all file:// pages, so without the edition segment
+   a buyer holding both files in one folder would have them overwrite each
+   other — and PRO would then throw on the three views whose collections LITE
+   never wrote. See editionMismatch(). */
+const KEY = `clearlyEmail.${EDITION}${DEMO ? '.demo' : ''}.v2`;
 let storageOK = true;
+let storageWhy = 'ok';   // 'ok' | 'full' (out of room) | 'blocked' (storage switched off)
 const memStore = {};
 
 function storeGet() {
   try { return localStorage.getItem(KEY); }
-  catch (e) { storageOK = false; return memStore[KEY] ?? null; }
+  catch (e) { storageOK = false; storageWhy = 'blocked'; return memStore[KEY] ?? null; }
+}
+/* "Out of room" and "storage is switched off" need different words: one is the buyer's fault
+   and fixable by them, the other isn't. Browsers signal a full bucket in three different ways
+   depending on age and engine, so check all of them. Returns 'ok' | 'full' | 'blocked'. */
+function quotaError(e) {
+  return e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    || e.code === 22 || e.code === 1014);
 }
 function storeSet(v) {
-  try { localStorage.setItem(KEY, v); return true; }
-  catch (e) { storageOK = false; memStore[KEY] = v; return false; }
+  try {
+    localStorage.setItem(KEY, v);
+    storageOK = true; storageWhy = 'ok';    // a transient failure must not downgrade us forever
+    return 'ok';
+  } catch (e) {
+    storageOK = false; storageWhy = quotaError(e) ? 'full' : 'blocked';
+    memStore[KEY] = v;
+    return storageWhy;
+  }
 }
+/* Would this state fit? Measured before committing, so an oversized addition can be refused
+   without leaving the buyer's planner holding data that will not survive a refresh. */
+function wouldFit(nextState) {
+  try {
+    const s = JSON.stringify(nextState);
+    localStorage.setItem(KEY + '.probe', s);
+    localStorage.removeItem(KEY + '.probe');
+    return true;
+  } catch (e) { try { localStorage.removeItem(KEY + '.probe'); } catch (_) {} return false; }
+}
+function stateBytes() { try { return JSON.stringify(state).length; } catch (e) { return 0; } }
 
 function freshState() {
   return {
     version: 2,
     data: flagSampleRows(sampleData()),
-    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO(), sample: 'active'},
+    meta: {edition: EDITION, edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO(), sample: 'active'},
   };
+}
+/* PRO and LITE hold different collections, and neither validates the other's
+   shape on the way in — normalizeState only asks for metrics + campaigns. So a
+   cross-edition load succeeds silently and then throws on the first view that
+   reads a collection the other edition never wrote. Every state and backup
+   carries its edition; anything untagged predates the split and is PRO. */
+function editionMismatch(s) {
+  const e = (s && s.meta && s.meta.edition) || 'pro';
+  return e === EDITION ? null : e;
 }
 /* Migrate a dataset that predates per-month base counts: its flat totals move
    into the current month, and any old 12-month revenue trend backfills months. */
@@ -901,9 +1015,9 @@ function migrateData(d) {
 function normalizeState(s) {
   if (!s || typeof s !== 'object' || !s.meta) return null;
   if (s.data && s.data.metrics && Array.isArray(s.data.campaigns))
-    return {version: 2, data: migrateData(s.data), meta: s.meta};
+    return {version: 2, data: migrateData(s.data), meta: {...s.meta, edition: EDITION}};
   if (s.my && s.my.metrics && Array.isArray(s.my.campaigns))
-    return {version: 2, data: migrateData(s.my), meta: s.meta};
+    return {version: 2, data: migrateData(s.my), meta: {...s.meta, edition: EDITION}};
   return null;
 }
 let state;
@@ -911,8 +1025,11 @@ let state;
   const raw = storeGet();
   if (raw) {
     try {
-      const norm = normalizeState(JSON.parse(raw));
-      if (norm) { state = norm; return; }
+      const parsed = JSON.parse(raw);
+      if (!editionMismatch(parsed)) {          // another edition's data — start fresh instead
+        const norm = normalizeState(parsed);
+        if (norm) { state = norm; return; }
+      }
     } catch (e) { /* corrupt — fall through to fresh */ }
   }
   state = freshState();
@@ -946,8 +1063,12 @@ function save(countEdit) {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     if (DEMO_LOCKED) { toast('✓ Updated — demo edits reset on refresh'); return; }
-    storeSet(JSON.stringify(state));
-    toast('✓ Saved' + (storageOK ? '' : ' (this session only — storage is blocked)'));
+    /* Never lead with "✓ Saved" when nothing was saved — and when the bucket is full, say so.
+       Blaming the browser for a payload problem sends the buyer looking in the wrong place. */
+    const res = storeSet(JSON.stringify(state));
+    toast(res === 'ok' ? '✓ Saved'
+      : res === 'full' ? '⚠ Not saved — this browser is out of storage. Remove a photo, then back up.'
+      : '⚠ Not saved to this device — storage is blocked, so changes last for this session only.');
   }, 300);
 }
 function toast(msg) {
@@ -978,7 +1099,7 @@ function doBackup() {
   const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `clearly-email-dashboard-backup-${todayISO()}.json`;
+  a.download = `clearly-email-${EDITION}-dashboard-backup-${todayISO()}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   state.meta.lastBackup = new Date().toISOString();
@@ -991,8 +1112,23 @@ function doRestore(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const norm = normalizeState(JSON.parse(reader.result));
+      const parsed = JSON.parse(reader.result);
+      /* Checked before the confirm, so nobody is asked to overwrite their
+         planner with a file that was going to be rejected anyway. */
+      const other = editionMismatch(parsed);
+      if (other) {
+        alert('That backup came from the ' + other.toUpperCase() + ' edition of the Clearly Email Marketing Dashboard.\n\nOpen it in that edition instead — restoring it here would leave parts of your planner empty. Nothing was changed.');
+        return;
+      }
+      const norm = normalizeState(parsed);
       if (!norm) throw new Error('shape');
+      /* Also before the confirm. A backup carrying more photos than this browser has room for
+         would otherwise restore, render, say "✓ Backup restored", and only fail on the
+         debounced save 300ms later — by which point the buyer has been told it worked. */
+      if (!wouldFit(norm)) {
+        alert('That backup is too large for this browser’s storage — it would look restored but would not survive a refresh.\n\nOpen it in a browser with more room, or remove some photos from the planner it came from and back it up again. Nothing was changed.');
+        return;
+      }
       if (!confirm('Replace everything in this planner with the backup "' + file.name + '"? Your current data will be overwritten.')) return;
       state = norm;
       save(false);
@@ -1086,17 +1222,47 @@ function derive(d, keys = periodMonthsKeys()) {
   else if (gm >= 0) r.subGrowth = Math.round(50 + (gm / 3) * 50);
   else r.subGrowth = clamp(Math.round(50 + gm * 10), 0, 50);
 
+  /* Automation health is upkeep, measured by an act — the review date — not by a self-report.
+     The status dropdown can only LOWER this, so no amount of marking flows "running" can
+     inflate the program score. The 30-day line is the product's own: the overdue-review alert,
+     the flow chip and the planner's auto-review event all already use it, and 30 days lands on
+     the 70 that healthBand calls "Healthy". */
   const autos = d.automations || [];
-  r.subAuto = autos.length ? Math.round(autos.filter(a => a.status === 'running').length / autos.length * 100) : null;
+  const upkeep = a => {
+    if (a.status === 'broken') return 0;
+    const ds = daysSince(a.lastReviewed);
+    if (ds === null) return 0;                                   // undated in a dated program is unreviewed
+    if (ds <= 0) return 100;
+    if (ds <= 30) return Math.round(100 - ds);                   // 30d -> 70
+    if (ds <= 90) return Math.round(70 - (ds - 30) * 70 / 60);   // 90d -> 0
+    return 0;
+  };
+  /* Nothing dated and nothing broken is "no evidence", not "failing" — the same rule the other
+     sub-scores obey. Without this, naming one flow on a fresh file scored 0 and read "Critical". */
+  const autoEvidence = autos.some(a => a.status === 'broken' || daysSince(a.lastReviewed) !== null);
+  r.subAuto = (autos.length && autoEvidence)
+    ? clamp(Math.round(autos.reduce((s, a) => s + upkeep(a), 0) / autos.length), 0, 100)
+    : null;
 
-  const parts = [
-    {v: r.subDeliv, w: .35, name: 'Deliverability'},
-    {v: r.subEngage, w: .35, name: 'Engagement'},
-    {v: r.subGrowth, w: .15, name: 'List growth'},
-    {v: r.subAuto, w: .15, name: 'Automation health'},
-  ].filter(p => p.v !== null);
+  /* Legs are kept unfiltered so the UI can name what's missing rather than silently
+     redistributing its weight. LITE has no deliverability leg, so wsum renormalizes the
+     remaining three to an effective 53.8 / 23.1 / 23.1. */
+  const legs = [
+    {v: r.subDeliv, w: .35, name: 'Deliverability', short: 'Deliverability', c: 'var(--aqua)', need: 'set SPF, DKIM and DMARC on Home'},
+    {v: r.subEngage, w: .35, name: 'Engagement', short: 'Engagement', c: 'var(--coral)', need: 'log a month of sends in Setup'},
+    {v: r.subGrowth, w: .15, name: 'List growth', short: 'List growth', c: 'var(--golden)', need: 'add your list size in Setup'},
+    {v: r.subAuto, w: .15, name: 'Automation health', short: 'Automations', c: 'var(--teal)', need: 'date your last flow review'},
+  ];
+  const parts = legs.filter(p => p.v !== null);
   const wsum = parts.reduce((a, p) => a + p.w, 0);
-  r.health = wsum > 0 ? clamp(Math.round(parts.reduce((a, p) => a + p.v * p.w, 0) / wsum), 0, 100) : null;
+  r.legs = legs;
+  r.signals = parts.length;
+  r.signalsTotal = legs.length;
+  r.missing = legs.filter(p => p.v === null);
+  /* One signal is not a program. Below two, we have data but not a defensible composite —
+     publishing one anyway is how a lone leg came to speak for the whole score. */
+  r.health = (parts.length >= 2 && wsum > 0)
+    ? clamp(Math.round(parts.reduce((a, p) => a + p.v * p.w, 0) / wsum), 0, 100) : null;
   r.weakest = parts.length ? parts.slice().sort((a, b2) => a.v - b2.v)[0] : null;
   return r;
 }
@@ -1108,6 +1274,22 @@ function healthBand(score) {
   if (score >= 55) return {cls: 'warning', label: 'Needs attention', color: 'var(--warning)'};
   if (score >= 35) return {cls: 'serious', label: 'At risk', color: 'var(--serious)'};
   return {cls: 'critical', label: 'Critical', color: 'var(--critical)'};
+}
+/* "No data yet" is wrong once one signal is in — we have data, we just won't build a program
+   score out of a single leg. Say that instead. */
+function healthChip(r) {
+  const b = healthBand(r.health);
+  return (r.health === null && r.signals > 0) ? {...b, label: 'Not enough yet'} : b;
+}
+/* A partial score that doesn't admit it is a partial score is just a wrong score. */
+function coverageNote(r) {
+  if (!r.signals || r.signals >= r.signalsTotal) return '';
+  const more = r.missing.length > 1 ? `, and ${r.missing.length - 1} more` : '';
+  return `Based on ${r.signals} of ${r.signalsTotal} signals — ${r.missing[0].need} to include ${r.missing[0].name.toLowerCase()}${more}.`;
+}
+/* One source for the band icon so Home and the Client Report can never drift apart. */
+function bandIcon(cls) {
+  return cls === 'good' ? 'checkcircle' : cls === 'neutral' ? 'question' : cls === 'critical' ? 'octagon' : 'alert';
 }
 
 const SEV_ORDER = {critical: 0, serious: 1, warning: 2, info: 3};
@@ -1232,6 +1414,7 @@ const MONTHS_BACK = (() => {
   }
   return out;
 })();
+
 
 function sparkSVG(series, {id, w = 560, h = 120, money = true, labels = null, editPaths = null, zeroBase = true} = {}) {
   const L = labels || MONTHS_BACK;
@@ -1402,8 +1585,16 @@ document.addEventListener('pointermove', e => {
     tt.style.left = (pr.left + pr.width / 2) + 'px';
     tt.style.top = pr.top + 'px';
     tt.hidden = false;
+    clampTip(tt);
   }
 });
+/* Keep the tooltip inside the viewport. It is position:fixed + nowrap; on iOS a
+   tap fires pointerover, and a fixed element hanging past the right edge makes
+   the whole page pannable sideways — the "tab isn't responsive" bug. */
+function clampTip(tt) {
+  const half = tt.offsetWidth / 2 + 6; // rendered with translateX(-50%)
+  tt.style.left = clamp(parseFloat(tt.style.left), half, window.innerWidth - half) + 'px';
+}
 function hideTip() {
   const tt = tooltipEl();
   tt.hidden = true;
@@ -1417,13 +1608,20 @@ document.addEventListener('pointerleave', e => {
 /* Generic per-mark hover tooltip for [data-tt] elements (bar chart rows, etc.) */
 document.addEventListener('pointerover', e => {
   const t = e.target.closest && e.target.closest('[data-tt]');
-  if (!t) return;
+  if (!t) {
+    // touch devices get pointerover per tap and often no pointerout —
+    // tapping anywhere else must put the tooltip away
+    const tt = tooltipEl();
+    if (tt && !tt.hidden) hideTip();
+    return;
+  }
   const tt = tooltipEl();
   tt.textContent = t.dataset.tt;
   const r = t.getBoundingClientRect();
   tt.style.left = (r.left + r.width / 2) + 'px';
   tt.style.top = r.top + 'px';
   tt.hidden = false;
+  clampTip(tt);
 });
 document.addEventListener('pointerout', e => {
   if (e.target.closest && e.target.closest('[data-tt]')) hideTip();
@@ -1431,23 +1629,27 @@ document.addEventListener('pointerout', e => {
 /* ================================================================
    Views, router, shell
 ================================================================ */
+/* The single view registry: nav order, grouping, icon and renderer all in one
+   row, so adding or cutting a view is a one-line change. The `fn` references
+   resolve because function declarations hoist. */
 const VIEWS = [
-  {id: 'start', label: 'Start Here', group: '', icon: 'target'},
-  {id: 'setup', label: 'Setup & Brand Profile', group: 'Foundations', icon: 'sliders'},
-  {id: 'domains', label: 'Sender Identity & Domains', group: 'Foundations', icon: 'globe'},
-  {id: 'home', label: 'Home Dashboard', group: 'Command & Performance', icon: 'home'},
-  {id: 'campaigns', label: 'Campaign Tracker', group: 'Command & Performance', icon: 'mail'},
-  {id: 'automations', label: 'Automation & Flow Hub', group: 'Command & Performance', icon: 'zap'},
-  {id: 'deliverability', label: 'Deliverability Monitor', group: 'Command & Performance', icon: 'shield'},
-  {id: 'segments', label: 'Segment Intelligence', group: 'Audience & Strategy', icon: 'users'},
-  {id: 'hygiene', label: 'List Health & Hygiene', group: 'Audience & Strategy', icon: 'pulse'},
-  {id: 'planner', label: 'Campaign Planner', group: 'Audience & Strategy', icon: 'calendar'},
-  {id: 'ideas', label: 'Idea Vault & Swipe File', group: 'Audience & Strategy', icon: 'bulb'},
-  {id: 'goals', label: 'Goals & Benchmarks', group: 'Growth & Reporting', icon: 'target'},
-  {id: 'report', label: 'Client / Brand Report', group: 'Growth & Reporting', icon: 'file'},
-  {id: 'abtests', label: 'A/B Test Log', group: 'Growth & Reporting', icon: 'flask'},
+  {id: 'start', label: 'Start Here', group: '', icon: 'target', fn: viewStart},
+  {id: 'setup', label: 'Setup & Brand Profile', group: 'Foundations', icon: 'sliders', fn: viewSetup},
+  {id: 'domains', label: 'Sender Identity & Domains', group: 'Foundations', icon: 'globe', fn: viewDomains},
+  {id: 'home', label: 'Home Dashboard', group: 'Command & Performance', icon: 'home', fn: viewHome},
+  {id: 'campaigns', label: 'Campaign Tracker', group: 'Command & Performance', icon: 'mail', fn: viewCampaigns},
+  {id: 'automations', label: 'Automation & Flow Hub', group: 'Command & Performance', icon: 'zap', fn: viewAutomations},
+  {id: 'deliverability', label: 'Deliverability Monitor', group: 'Command & Performance', icon: 'shield', fn: viewDeliverability},
+  {id: 'segments', label: 'Segment Intelligence', group: 'Audience & Strategy', icon: 'users', fn: viewSegments},
+  {id: 'hygiene', label: 'List Health & Hygiene', group: 'Audience & Strategy', icon: 'pulse', fn: viewHygiene},
+  {id: 'planner', label: 'Campaign Planner', group: 'Audience & Strategy', icon: 'calendar', fn: viewPlanner},
+  {id: 'ideas', label: 'Idea Vault & Swipe File', group: 'Audience & Strategy', icon: 'bulb', fn: viewIdeas},
+  {id: 'goals', label: 'Goals & Benchmarks', group: 'Growth & Reporting', icon: 'target', fn: viewGoals},
+  {id: 'report', label: 'Client / Brand Report', group: 'Growth & Reporting', icon: 'file', fn: viewReport},
+  {id: 'abtests', label: 'A/B Test Log', group: 'Growth & Reporting', icon: 'flask', fn: viewTests},
+  {id: 'wins', label: 'Wins & Highlights', group: 'Growth & Reporting', icon: 'medal', fn: viewWins},
 ];
-const ui = {view: 'home', sort: {}, monthOffset: 0, period: {mode: 'month', ref: monthKey()}};
+const ui = {view: 'home', sort: {}, monthOffset: 0, period: {mode: 'month', ref: monthKey()}, addModal: null};
 
 /* ---------------- Reporting period ---------------- */
 function periodMonthsKeys() {
@@ -1537,7 +1739,7 @@ function renderNav() {
           <rect x="21" y="30" width="22" height="5" rx="2.5" fill="var(--logo-ink)"/>
           <rect x="21" y="38" width="14" height="5" rx="2.5" fill="var(--coral)"/>
         </svg>Clearly</span>
-      <span class="wm-sub">Email Marketing Dashboard</span>
+      <span class="wm-sub">Email Marketing Dashboard PRO</span>
     </div>
     ${groups.map(g => `
       <div class="navgroup"${g ? '' : ' style="margin-top:6px"'}>${g ? `<h2>${esc(g)}</h2>` : ''}<ul>
@@ -1581,7 +1783,180 @@ function nudgeHTML() {
 function demoBanner() {
   if (!DEMO) return '';
   return `<div class="nudge" style="border-left-color:var(--pink)" role="region" aria-label="Live demo notice">
-    ${icon('bulb', 16)}<span>You're in the <strong>live demo</strong> of the Clearly Email Marketing Dashboard, filled with sample data. Click any number or label — it's all editable, and everything recalculates as you type.${DEMO_LOCKED ? ' Demo edits reset on refresh; the full version saves everything automatically and adds Backup & Restore.' : ' Your download opens clean, ready for your own numbers.'}</span></div>`;
+    ${icon('bulb', 16)}<span>You're in the <strong>live demo</strong> of the Clearly Email Marketing Dashboard PRO, filled with sample data. Click any number or label — it's all editable, and everything recalculates as you type.${DEMO_LOCKED ? ' Demo edits reset on refresh; the full version saves everything automatically and adds Backup & Restore.' : ' Your download opens clean, ready for your own numbers.'}</span></div>`;
+}
+
+/* ================================================================
+   Wins — records the planner finds for you, milestones, and your own log
+================================================================ */
+/* Records are derived, never stored: they re-earn themselves from the data you already log,
+   so there is nothing to maintain and nothing to go stale. */
+function winRecords(d) {
+  const sent = (d.campaigns || []).filter(c => c.status === 'sent');
+  const rate = c => (num(c.sent) ? div(c.opened, c.sent) : null);
+  const conv = c => (num(c.sent) ? div(c.conversions, c.sent) : null);
+  const bestBy = (arr, f) => arr.reduce((a, c) => {
+    const v = f(c); return (v !== null && (a === null || v > f(a))) ? c : a;
+  }, null);
+
+  const topOpen = bestBy(sent.filter(c => rate(c) !== null), rate);
+  const topConv = bestBy(sent.filter(c => conv(c) !== null), conv);
+  const topRev = bestBy(sent.filter(c => num(c.revenue) !== null), c => num(c.revenue));
+  const months = Object.entries(d.months || {}).filter(([, m]) => num(m.revenue) !== null);
+  const topMonth = months.length ? months.reduce((a, b2) => num(b2[1].revenue) > num(a[1].revenue) ? b2 : a) : null;
+  const tests = (d.tests || []).filter(t => t.status === 'complete' && (t.learning || '').trim());
+
+  return [
+    {label: 'Best open rate', value: topOpen ? fmt.pct(rate(topOpen) * 100) : null, sub: topOpen ? topOpen.title : 'no sent campaign has opens logged yet', acc: 'coral'},
+    {label: 'Record month', value: topMonth ? fmt.money(topMonth[1].revenue) : null, sub: topMonth ? monthLabel(topMonth[0]) : 'log a month of revenue in Setup', acc: 'golden'},
+    {label: 'Biggest earner', value: topRev ? fmt.money(topRev.revenue) : null, sub: topRev ? topRev.title : 'log revenue on a sent campaign', acc: 'aqua'},
+    {label: 'Best converter', value: topConv ? fmt.pct(conv(topConv) * 100) : null, sub: topConv ? topConv.title : 'log conversions on a sent campaign', acc: 'teal'},
+    {label: 'Tests concluded', value: tests.length ? fmt.int(tests.length) : null, sub: tests.length ? 'with a written learning' : 'finish a test and write what you learned', acc: 'coral'},
+  ];
+}
+/* Consecutive months carrying any numbers, counted back from the latest that does. An empty
+   current month is forgiven — mid-month it simply hasn't been typed yet. */
+function monthHasData(mo) {
+  return !!mo && ['sent', 'delivered', 'opened', 'revenue'].some(f => num(mo[f]) !== null);
+}
+function streakMonths(d) {
+  const M = d.months || {};
+  let k = monthKey();
+  if (!monthHasData(M[k])) k = addMonths(k, -1);
+  let n = 0;
+  while (monthHasData(M[k]) && n < 240) { n++; k = addMonths(k, -1); }
+  return n;
+}
+/* Every threshold below is one the product already asserts somewhere else — a badge that
+   invents a new number would be a second definition of "good". Present tense throughout:
+   nothing records WHEN a badge was earned, so it can un-earn, and "you earned" would lie. */
+function badgeDefs(d, r) {
+  const b = d.benchmarks || {};
+  const sent = (d.campaigns || []).filter(c => c.status === 'sent');
+  const autos = d.automations || [];
+  const reviewed = autos.filter(a => daysSince(a.lastReviewed) !== null && daysSince(a.lastReviewed) <= 30).length;
+  const streak = streakMonths(d);
+  const totalRev = Object.values(d.months || {}).reduce((a, m) => a + (num(m.revenue) ?? 0), 0);
+  const tier = totalRev >= 100000 ? 100000 : totalRev >= 50000 ? 50000 : 10000;
+  const goalHit = (d.goals || []).filter(g => num(g.target) && num(g.actual) !== null && num(g.actual) / num(g.target) >= 1).length;
+  const learned = (d.tests || []).filter(t => t.status === 'complete' && (t.learning || '').trim()).length;
+
+  return [
+    {t: 'First send logged', have: sent.length, need: 1, why: 'a campaign marked sent'},
+    {t: 'A quarter of data', have: streak, need: 3, why: 'months in a row'},
+    {t: 'A full year', have: streak, need: 12, why: 'months in a row'},
+    {t: 'Beating your open rate', have: r.openRate !== null && num(b.open) ? Math.min(r.openRate / num(b.open), 1) : 0, need: 1, why: 'this period vs your benchmark', pct: true},
+    {t: 'Automation engine', have: r.revenue ? (num(r.automationRevenue) ?? 0) / r.revenue : 0, need: .35, why: 'of revenue from flows', pct: true},
+    {t: 'Every flow reviewed', have: reviewed, need: Math.max(autos.length, 1), why: 'flows reviewed in 30 days'},
+    {t: 'Growing list', have: r.netGrowth !== null && r.netGrowth > 0 ? 1 : 0, need: 1, why: 'net growth this period'},
+    {t: 'First goal hit', have: goalHit, need: 1, why: 'goal at or past target'},
+    {t: 'Test discipline', have: learned, need: 3, why: 'tests closed with a learning'},
+    {t: `${fmt.money(tier)} tracked`, have: totalRev, need: tier, why: 'total revenue logged'},
+  ];
+}
+/* The floor is arithmetic, not taste: a 9-of-10 send is a 90% open rate. Stated in the header
+   rather than hidden, and each card shows its send count so the reader can discount anyway. */
+function subjectHallOfFame(d, {limit = 6, minSent = 50} = {}) {
+  return (d.campaigns || [])
+    .filter(c => c.status === 'sent' && (c.subject || '').trim() && num(c.sent) >= minSent && num(c.opened) !== null)
+    .map(c => ({...c, or: div(c.opened, c.sent) * 100, ctor: div(c.clicked, c.opened)}))
+    .sort((a, b2) => b2.or - a.or)
+    .slice(0, limit);
+}
+const WIN_IMG_CAP = 8;
+function winImgCount(d) { return (d.wins || []).filter(w => w.img).length; }
+
+function viewWins() {
+  const d = D(), r = derive(d);
+  const wins = d.wins || [];
+  const hof = subjectHallOfFame(d);
+  const badges = badgeDefs(d, r);
+  const earned = badges.filter(x => x.have >= x.need).length;
+  const streak = streakMonths(d);
+  const imgs = winImgCount(d);
+  const kb = Math.round(stateBytes() / 1024);
+
+  return `
+  ${viewHead('Wins & Highlights', 'What went right — found for you, and logged by you.',
+    `<button class="btn btn-primary" data-action="addrow" data-list="wins">${icon('plus', 14)}Add a win</button>`)}
+  <div class="grid">
+
+    <section class="card" aria-label="Records">
+      ${cardH('medal', 'Records So Far', 'found in what you have already logged', 'golden')}
+      <div class="card-b">
+        <div class="tiles">
+          ${winRecords(d).map(x => tile(x.label, x.value === null ? '<span class="dash">—</span>' : x.value, x.sub, false, x.acc)).join('')}
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Your logged wins">
+      ${cardH('image', 'Your Wins', `${wins.length} logged · ${imgs} of ${WIN_IMG_CAP} photos · ${kb} KB on this device`, 'coral')}
+      <div class="card-b flush">
+        ${wins.length ? wins.map((w, i) => `
+          <div class="winrow">
+            <div>
+              <div class="thumb" data-winidx="${i}">
+                ${w.img
+                  ? `<img class="th-img" src="${w.img}" alt="Attached to: ${esc(w.title || 'this win')}" loading="lazy" decoding="async">
+                     <button class="th-clear" data-action="win-img-clear" data-i="${i}" aria-label="Remove photo">${icon('x', 12)}</button>`
+                  : `<button class="th-add" data-action="win-img" data-i="${i}">${icon('image', 13)}Add photo</button>`}
+              </div>
+              ${w.img ? '' : `<div class="li-sub" style="margin-top:5px;text-align:center">drop or paste an image</div>`}
+            </div>
+            <div>
+              <div class="winmeta">
+                ${edField(`wins.${i}.title`, {min: 20, max: 56, cls: 'ed-big', label: 'Win title'})}${sampleChip(w)}
+                <span class="wm-val">${edField(`wins.${i}.value`, {min: 5, max: 12, label: 'Result value', ph: 'result'})}</span>
+                <span class="li-sub">${edField(`wins.${i}.metric`, {min: 6, max: 16, label: 'Metric', ph: 'metric'})} · ${edField(`wins.${i}.date`, {type: 'date', min: 10, label: 'Date'})}</span>
+                <button class="rowdel" data-action="delrow" data-list="wins" data-i="${i}" aria-label="Delete win" style="margin-left:auto">${icon('x', 13)}</button>
+              </div>
+              <textarea class="ed ed-area" data-path="wins.${i}.note" data-etype="text" rows="3"
+                aria-label="What you learned" placeholder="What made it work — so you can do it again.">${esc(w.note || '')}</textarea>
+            </div>
+          </div>`).join('')
+        : `<div class="emptystate">Nothing logged yet. When a send goes well, put it here with the artwork — <em>Add a win</em>, top right.</div>`}
+      </div>
+    </section>
+
+    <section class="card" aria-label="Subject line hall of fame">
+      ${cardH('mail', 'Subject Line Hall of Fame', 'ranked by open rate · sends of 50+', 'aqua')}
+      <div class="card-b">
+        ${hof.length ? `<div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+          ${hof.map((c, i) => `<div class="tile">
+            <div class="hof-rank">#${i + 1} · ${relDay(c.date)}</div>
+            <div class="hof-subj">“${esc(c.subject)}”</div>
+            <div class="t-value">${fmt.pct(c.or)}</div>
+            <div class="t-sub">${benchBadge(c.or, (d.benchmarks || {}).open)} ${fmt.int(c.sent)} sent${c.ctor !== null ? ` · ${fmt.pct(c.ctor * 100)} CTOR` : ''}</div>
+          </div>`).join('')}</div>`
+        : `<div class="emptystate">${(d.campaigns || []).some(c => (c.subject || '').trim())
+            ? 'Subject lines logged, but no send has reached 50 recipients yet.'
+            : 'Add a subject line to your sent campaigns — the best performers rank themselves here.'}</div>`}
+      </div>
+    </section>
+
+    <section class="card" aria-label="Milestones and streak">
+      ${cardH('target', 'Milestones', `${earned} of ${badges.length} · ${streak} month${streak === 1 ? '' : 's'} in a row`, 'teal')}
+      <div class="card-b">
+        <div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+          ${badges.map(x => {
+            const done = x.have >= x.need;
+            const pctOf = clamp(Math.round((x.have / x.need) * 100), 0, 100);
+            const prog = x.pct ? `${pctOf}% of the way` : `${fmt.int(Math.min(x.have, x.need))} of ${fmt.int(x.need)} — ${x.why}`;
+            return `<div class="badge ${done ? 'earned' : ''}" aria-label="${done ? 'Earned' : 'Not yet'}: ${esc(x.t)}. ${esc(prog)}">
+              <span class="bg-ic">${icon(done ? 'checkcircle' : 'medal', 15)}</span>
+              <div style="min-width:0;flex:1">
+                <div class="bg-t">${esc(x.t)}</div>
+                <div class="bg-s">${done ? esc(x.why) : esc(prog)}</div>
+                ${done ? '' : `<span class="meterbar"><i style="width:${pctOf}%;background:var(--teal)"></i></span>`}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </section>
+
+  </div>`;
 }
 
 function viewHead(title, sub, aux = '') {
@@ -1625,7 +2000,7 @@ function viewHome() {
     const ns = num(mo.newSubs), us = num(mo.unsubs);
     return (ns === null && us === null) ? null : (ns ?? 0) - (us ?? 0);
   });
-  const band = healthBand(r.health);
+  const band = healthChip(r);
   const alerts = buildAlerts(d, r);
   const upcoming = upcomingItems(d);
   const decaying = (d.segments || []).filter(s => s.status === 'decaying');
@@ -1635,6 +2010,9 @@ function viewHome() {
   const broken = autos.filter(a => a.status === 'broken').length;
   const bounceOK = num(m.bounceRate) === null ? null : num(m.bounceRate) <= (num(b.bounce) ?? 2);
   const compOK = num(m.complaintRate) === null ? null : num(m.complaintRate) <= (num(b.complaint) ?? 0.1);
+  /* The all-clear names what was checked, so it has to match the alerts this edition can
+     actually raise. A JS ALT pair, not an HTML one — the line it feeds contains ${…}. */
+  const allClearWhat = 'authentication passing, flows healthy, list growing';
   const sendsToday = (d.campaigns || []).filter(c => c.status === 'scheduled' && daysUntil(c.date) === 0).length;
   const sendsWeek = (d.campaigns || []).filter(c => c.status === 'scheduled' && daysUntil(c.date) >= 0 && daysUntil(c.date) <= 7).length;
 
@@ -1644,18 +2022,21 @@ function viewHome() {
   <div class="grid">
 
     <section class="card c4" aria-label="Program health score">
-      ${cardH('gauge', 'Program Health', `<span class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : band.cls === 'neutral' ? 'question' : band.cls === 'critical' ? 'octagon' : 'alert', 13)}${band.label}</span>`)}
+      ${cardH('gauge', 'Program Health', `<span class="chip ${band.cls}">${icon(bandIcon(band.cls), 13)}${band.label}</span>`)}
       <div class="gaugewrap hero-grad">
         ${gaugeSVG(r.health, band)}
         <p class="risknote">${r.health === null
-          ? 'Enter your base numbers in <strong>Setup</strong> and the metrics tiles to compute your score.'
+          ? (r.signals
+              ? `Not enough to score yet — a program score needs at least <strong>two</strong> of the ${r.signalsTotal} signals.`
+              : 'Enter your base numbers in <strong>Setup</strong> and the metrics tiles to compute your score.')
           : r.weakest && r.weakest.v < 85
             ? `Biggest drag right now: <strong>${r.weakest.name.toLowerCase()}</strong> at ${r.weakest.v}/100.`
             : 'No single weak spot — keep the cadence.'}</p>
         <div class="subscores">
-          ${[['Deliverability', r.subDeliv, 'var(--aqua)'], ['Engagement', r.subEngage, 'var(--coral)'], ['List growth', r.subGrowth, 'var(--golden)'], ['Automations', r.subAuto, 'var(--teal)']].map(([n, v, c]) => `
-            <div class="subscore"><span>${n}</span><span class="meterbar"><i style="width:${v ?? 0}%;background:${c}"></i></span><b>${v === null ? '—' : v}</b></div>`).join('')}
+          ${r.legs.map(p => `
+            <div class="subscore"><span>${p.short}</span><span class="meterbar"><i style="width:${p.v ?? 0}%;background:${p.c}"></i></span><b>${p.v === null ? '—' : p.v}</b></div>`).join('')}
         </div>
+        ${coverageNote(r) ? `<p class="covernote">${coverageNote(r)}</p>` : ''}
       </div>
     </section>
 
@@ -1685,7 +2066,7 @@ function viewHome() {
           <span class="a-txt"><span class="a-sev">${a.sev}</span>${a.text}
           ${a.view ? ` <button class="btn btn-ghost" style="padding:0;font-size:11.5px;color:var(--brand-deep);font-weight:600" data-action="goto" data-view="${a.view}">Open →</button>` : ''}</span></li>`).join('')}
         ${alerts.length > 7 ? `<li class="sev-info"><span class="a-ic">${icon('info', 14)}</span><span class="a-txt">+ ${alerts.length - 7} more — resolved as you work through the views.</span></li>` : ''}</ul>`
-      : `<div class="allclear"><span class="ac-ic">${icon('check', 20)}</span><strong>All clear.</strong><span>Nothing needs your attention — authentication passing, flows healthy, list growing.</span></div>`}
+      : `<div class="allclear"><span class="ac-ic">${icon('check', 20)}</span><strong>All clear.</strong><span>Nothing needs your attention — ${allClearWhat}.</span></div>`}
     </section>
 
     <section class="card c8" aria-label="Revenue snapshot">
@@ -1732,7 +2113,7 @@ function viewHome() {
           <div class="donutmeta">
             <div class="d-big">${edField('metrics.subscribers', {type: 'num', min: 5, label: 'Total subscribers'})}</div>
             <div class="d-sub">subscribers · ${edField('metrics.activeSubscribers', {type: 'num', min: 5, label: 'Active subscribers'})} active</div>
-            <div class="d-sub">${r.netGrowth === null ? '<span class="hint-edit">growth in List Health</span>' : `${fmt.signed(r.netGrowth)} net growth · ${periodLabel()}`}</div>
+            <div class="d-sub">${r.netGrowth === null ? '<span class="hint-edit">growth appears once you log a month</span>' : `${fmt.signed(r.netGrowth)} net growth · ${periodLabel()}`}</div>
           </div>
         </div>
         ${netAdds.filter(v => v !== null).length >= 2 ? `<div style="margin-top:12px;border-top:1px solid var(--hairline);padding-top:9px">
@@ -1838,7 +2219,9 @@ function viewSetup() {
         <p style="margin:0">The <strong>full version</strong> autosaves every edit to your own device (nothing is uploaded anywhere), and its <strong>Backup</strong> / <strong>Restore</strong> buttons move your data between computers as a portable <code>.json</code> file.</p>
       </div>` : `<div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.65">
         <p style="margin:0 0 8px">Everything lives <strong>in this browser, on this device</strong> — nothing is uploaded anywhere. <strong>Backup</strong> downloads a portable <code>.json</code> file; <strong>Restore</strong> loads one on any device. That's also how you move between computers.</p>
-        <p style="margin:0 0 12px">${storageOK ? staticChip('good', 'checkcircle', 'Autosave active') : staticChip('warning', 'alert', 'Storage blocked — session-only')} &nbsp;Saved automatically ~0.3s after every edit.</p>
+        <p style="margin:0 0 12px">${storageOK ? staticChip('good', 'checkcircle', 'Autosave active')
+          : storageWhy === 'full' ? staticChip('serious', 'alert', 'Out of storage — not saving')
+          : staticChip('warning', 'alert', 'Storage blocked — session-only')} &nbsp;Saved automatically ~0.3s after every edit.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-primary" data-action="backup">${icon('download', 14)}Backup now</button>
           <button class="btn" data-action="restore">${icon('upload', 14)}Restore from file</button>
@@ -1971,7 +2354,8 @@ function viewCampaigns() {
         </tr></thead>
         <tbody>${shown.map(i => { const c = d.campaigns[i]; const ctor = div(c.clicked, c.opened); return `
           <tr>
-            <td>${edField(`campaigns.${i}.title`, {min: 16, max: 30, label: 'Campaign title'})}${sampleChip(c)}</td>
+            <td>${edField(`campaigns.${i}.title`, {min: 16, max: 30, label: 'Campaign title'})}${sampleChip(c)}
+              <div class="li-sub">${edField(`campaigns.${i}.subject`, {min: 18, max: 34, label: 'Subject line', ph: 'subject line…'})}</div></td>
             <td>${edField(`campaigns.${i}.segment`, {min: 10, max: 20, label: 'Segment'})}</td>
             <td>${edField(`campaigns.${i}.date`, {type: 'date', min: 10, label: 'Send date'})}<div class="li-sub">${relDay(c.date)}</div></td>
             <td>${cycleChip(`campaigns.${i}.status`, 'campaign', 'Campaign status')}</td>
@@ -2299,7 +2683,7 @@ function viewGoals() {
 /* ---------------- REPORT ---------------- */
 function viewReport() {
   const d = D(), r = derive(d), b = d.benchmarks, m = d.metrics;
-  const band = healthBand(r.health);
+  const band = healthChip(r);
   const topCamps = d.campaigns.filter(c => c.status === 'sent' && num(c.revenue) !== null)
     .sort((a, c) => num(c.revenue) - num(a.revenue)).slice(0, 3);
   const autos = d.automations || [];
@@ -2313,7 +2697,10 @@ function viewReport() {
         <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--hairline);padding-bottom:12px;margin-bottom:14px">
           <div><div style="font-weight:800;letter-spacing:-.02em;font-size:24px">${esc(d.brand.name)}</div>
           <div style="color:var(--ink-2);font-size:12.5px">Email program report · ${periodLabel()} · ${esc(d.brand.esp)}</div></div>
-          <div class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : 'alert', 13)}Program health ${r.health ?? '—'}/100 — ${band.label}</div>
+          <div style="text-align:right">
+            <div class="chip ${band.cls}">${icon(bandIcon(band.cls), 13)}Program health ${r.health ?? '—'}/100 — ${band.label}</div>
+            ${coverageNote(r) ? `<div style="font-size:10.5px;color:var(--ink-2);margin-top:4px;max-width:34ch">${coverageNote(r)}</div>` : ''}
+          </div>
         </div>
         <div class="rep-sec rep-kpis">
           ${tile('Revenue', fmt.money(r.revenue), `campaigns ${fmt.money(r.campaignRevenue)} · flows ${fmt.money(r.automationRevenue)}`)}
@@ -2421,7 +2808,7 @@ function viewStart() {
       ${cardH('target', 'What each part is for', '4 sections')}
       <div class="card-b">
         <ul class="startlist">
-      <li><strong>Foundations</strong><span class="li-sub">Your brand, sender details and the benchmarks everything is measured against.</span></li>
+      <li><strong>Foundations</strong><span class="li-sub">Your brand details and the benchmarks everything is measured against.</span></li>
       <li><strong>Command &amp; Performance</strong><span class="li-sub">The day-to-day: what went out, how it did, and what needs you today.</span></li>
       <li><strong>Audience &amp; Strategy</strong><span class="li-sub">Your list, your segments, and what you are going to send next.</span></li>
       <li><strong>Growth &amp; Reporting</strong><span class="li-sub">Goals, tests, and the one-page report you send a client.</span></li>
@@ -2441,13 +2828,7 @@ function viewStart() {
       </div></section>
   </div>`;
 }
-const VIEW_FN = {
-  start: viewStart,
-  home: viewHome, setup: viewSetup, domains: viewDomains, campaigns: viewCampaigns,
-  automations: viewAutomations, deliverability: viewDeliverability, segments: viewSegments,
-  hygiene: viewHygiene, planner: viewPlanner, ideas: viewIdeas, goals: viewGoals,
-  report: viewReport, abtests: viewTests,
-};
+const VIEW_FN = Object.fromEntries(VIEWS.map(v => [v.id, v.fn]));
 /* Entry animations play only on initial load and view switches — never on data-edit re-renders */
 let animPending = true;
 const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2473,7 +2854,9 @@ function render() {
   renderNav();
   renderTopbar();
   const main = $('#main');
-  main.innerHTML = demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)();
+  let modal = '';
+  if (!modal && ui.addModal) modal = addModalHTML();
+  main.innerHTML = demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
@@ -2484,6 +2867,16 @@ function scheduleRender() {
   clearTimeout(renderTimer);
   renderTimer = setTimeout(() => {
     const ae = document.activeElement;
+    // A render replaces every node in <main>. If the user has already tapped into a
+    // <select>, iOS ties the open picker to that exact element — swapping it out
+    // mid-pick makes the change event fire on a detached node and the choice is
+    // silently lost (tap-twice-to-stick). Hold the render until the select settles.
+    if (ae && ae.tagName === 'SELECT' && ae.closest('#main')) {
+      const resume = () => { ae.removeEventListener('change', resume); ae.removeEventListener('blur', resume); scheduleRender(); };
+      ae.addEventListener('change', resume);
+      ae.addEventListener('blur', resume);
+      return;
+    }
     const path = ae && ae.classList && ae.classList.contains('ed') ? ae.dataset.path : null;
     render();
     if (path) {
@@ -2498,11 +2891,12 @@ function listRef(name) {
   return name.split('.').reduce((o, k) => o[k], D());
 }
 const NEW_ROW = {
-  campaigns: () => ({id: uid(), title: 'New campaign', segment: '', date: todayISO(), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'idea', variant: '', notes: ''}),
+  campaigns: () => ({id: uid(), title: 'New campaign', subject: '', segment: '', date: todayISO(), sent: null, opened: null, clicked: null, conversions: null, revenue: null, status: 'idea', variant: '', notes: ''}),
   automations: () => ({id: uid(), name: 'New flow', trigger: '', emails: 1, status: 'needs review', revenue: null, lastReviewed: ''}),
   segments: () => ({id: uid(), name: 'New segment', size: null, openRate: null, revenue: null, ltv: null, status: 'watch', nextAction: ''}),
   domains: () => ({id: uid(), domain: 'sub.yourbrand.com', spf: 'unknown', dkim: 'unknown', dmarc: 'unknown', warmup: 'not started', ip: 'shared'}),
   'hygiene.sources': () => ({id: uid(), name: 'New source', subs: null}),
+  wins: () => ({id: uid(), date: todayISO(), title: 'What worked', metric: '', value: '', note: '', img: ''}),
   schedule: () => ({id: uid(), title: 'New checkpoint', date: todayISO(), type: 'review'}),
   'ideas.campaigns': () => ({id: uid(), text: 'New idea…'}),
   'ideas.subjects': () => ({id: uid(), text: 'New subject line…'}),
@@ -2510,6 +2904,125 @@ const NEW_ROW = {
   goals: () => ({id: uid(), name: 'New goal', target: null, actual: null, unit: ''}),
   tests: () => ({id: uid(), name: 'New test', hypothesis: '', metric: '', a: '', b: '', winner: '', learning: '', status: 'planned'}),
 };
+
+/* ================================================================
+   "Add" modal — every add button opens this small form first, so new
+   rows arrive in the user's own words instead of as "New campaign"
+   placeholder text they then have to hunt down and edit in place.
+================================================================ */
+const cycleOptions = set => CYCLE_SETS[set].values.map(v => ({v, t: CYCLE_SETS[set].meta[v][2]}));
+const ADD_FORMS = {
+  campaigns: {title: 'Add campaign', hint: 'counts and rates can come later', fields: [
+    {k: 'title', label: 'Campaign name', ph: 'e.g. Spring launch'},
+    {k: 'subject', label: 'Subject line', ph: 'subject line…'},
+    {k: 'segment', label: 'Segment', ph: 'who gets it?'},
+    {k: 'date', label: 'Send date', type: 'date'},
+    {k: 'status', label: 'Status', options: () => cycleOptions('campaign')},
+    {k: 'sent', label: 'Sent count', type: 'num'},
+    {k: 'opened', label: 'Opens', type: 'num'},
+    {k: 'clicked', label: 'Clicks', type: 'num'},
+    {k: 'conversions', label: 'Conversions', type: 'num'},
+    {k: 'revenue', label: 'Revenue ($)', type: 'num'},
+    {k: 'variant', label: 'A/B variant', ph: 'e.g. subject test B'},
+    {k: 'notes', label: 'Notes'},
+  ]},
+  automations: {title: 'Add flow', fields: [
+    {k: 'name', label: 'Flow name', ph: 'e.g. Welcome series'},
+    {k: 'trigger', label: 'Trigger', ph: 'what starts it?'},
+    {k: 'emails', label: 'Emails in flow', type: 'num', ph: '1'},
+    {k: 'status', label: 'Flow status', options: () => cycleOptions('flow')},
+    {k: 'revenue', label: 'Flow revenue ($)', type: 'num'},
+    {k: 'lastReviewed', label: 'Last reviewed', type: 'date'},
+  ]},
+  segments: {title: 'Add segment', fields: [
+    {k: 'name', label: 'Segment name', ph: 'e.g. VIP repeat buyers'},
+    {k: 'status', label: 'Segment health', options: () => cycleOptions('segment')},
+    {k: 'size', label: 'Size', type: 'num'},
+    {k: 'openRate', label: 'Open rate (%)', type: 'num'},
+    {k: 'revenue', label: 'Revenue ($)', type: 'num'},
+    {k: 'ltv', label: 'Average lifetime value ($)', type: 'num'},
+    {k: 'nextAction', label: 'Next action', ph: 'what will you do with this segment?'},
+  ]},
+  domains: {title: 'Add domain', hint: 'one row per domain you send from', fields: [
+    {k: 'domain', label: 'Domain', ph: 'sub.yourbrand.com'},
+    {k: 'spf', label: 'SPF', options: () => cycleOptions('auth')},
+    {k: 'dkim', label: 'DKIM', options: () => cycleOptions('auth')},
+    {k: 'dmarc', label: 'DMARC', options: () => cycleOptions('auth')},
+    {k: 'warmup', label: 'Warm-up stage', ph: 'not started'},
+    {k: 'ip', label: 'Dedicated or shared IP', ph: 'shared'},
+  ]},
+  'hygiene.sources': {title: 'Add source', hint: 'where subscribers come from', fields: [
+    {k: 'name', label: 'Source name', ph: 'e.g. Website pop-up'},
+    {k: 'subs', label: 'Subscribers', type: 'num'},
+  ]},
+  wins: {title: 'Add a win', hint: 'log it while it is fresh', fields: [
+    {k: 'title', label: 'Win title', ph: 'what worked?'},
+    {k: 'value', label: 'Result value', ph: 'result'},
+    {k: 'metric', label: 'Metric', ph: 'metric'},
+    {k: 'date', label: 'Date', type: 'date'},
+    {k: 'note', label: 'What you learned', ph: 'What made it work — so you can do it again.'},
+  ]},
+  schedule: {title: 'Add checkpoint', hint: 'shows on the planner calendar', fields: [
+    {k: 'date', label: 'Checkpoint date', type: 'date'},
+    {k: 'title', label: 'Checkpoint title', ph: 'e.g. Review welcome flow'},
+  ]},
+  'ideas.campaigns': {title: 'Add campaign idea', fields: [
+    {k: 'text', label: 'Campaign idea', ph: 'the send in one sentence'},
+  ]},
+  'ideas.subjects': {title: 'Add subject line', fields: [
+    {k: 'text', label: 'Subject line', ph: 'proven or borrowed — save it here'},
+  ]},
+  'ideas.offers': {title: 'Add offer', fields: [
+    {k: 'text', label: 'Offer or promo', ph: 'park it until the calendar has room'},
+  ]},
+  goals: {title: 'Add goal', fields: [
+    {k: 'name', label: 'Goal', ph: 'e.g. $10k email revenue this quarter'},
+    {k: 'target', label: 'Target', type: 'num'},
+    {k: 'actual', label: 'Where you are now', type: 'num'},
+    {k: 'unit', label: 'Unit', options: () => [{v: '', t: 'count'}, {v: '$', t: 'dollars'}, {v: '%', t: 'percent'}]},
+  ]},
+  tests: {title: 'Add test', fields: [
+    {k: 'name', label: 'Test name', ph: 'what are you testing?'},
+    {k: 'hypothesis', label: 'Hypothesis', ph: 'I think … because …'},
+    {k: 'metric', label: 'Metric', ph: 'e.g. open rate'},
+    {k: 'a', label: 'Variant A result'},
+    {k: 'b', label: 'Variant B result'},
+    {k: 'winner', label: 'Winner'},
+    {k: 'learning', label: 'Learning', ph: 'the learning column is the product'},
+    {k: 'status', label: 'Test status', options: () => cycleOptions('test')},
+  ]},
+};
+function addModalHTML() {
+  const {list, row} = ui.addModal;
+  const spec = ADD_FORMS[list];
+  if (!spec) return '';
+  const d = D();
+  const fieldHTML = f => {
+    const seed = row[f.k];
+    if (f.options) {
+      const opts = f.options(d);
+      return `<label class="af-row"><span class="af-l">${esc(f.label)}</span>
+        <select class="af-in" data-fkey="${f.k}">${opts.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(seed ?? '') ? 'selected' : ''}>${esc(o.t)}</option>`).join('')}</select></label>`;
+    }
+    // text starts empty (its seed becomes the placeholder); dates & numbers pre-fill
+    const val = f.type === 'num' ? (num(seed) ?? '') : f.type === 'date' ? (seed || '') : '';
+    const attrs = [`class="af-in"`, `data-fkey="${f.k}"`, `data-ftype="${f.type || 'text'}"`,
+      `type="${f.type === 'date' ? 'date' : 'text'}"`, `value="${esc(val)}"`, `aria-label="${esc(f.label)}"`];
+    if (f.type === 'num') attrs.push('inputmode="decimal"', 'autocomplete="off"');
+    const ph = f.ph || '';
+    if (!f.type && ph) attrs.push(`placeholder="${esc(ph)}"`);
+    if (f.type === 'num' && ph) attrs.push(`placeholder="${esc(ph)}"`);
+    return `<label class="af-row"><span class="af-l">${esc(f.label)}</span><input ${attrs.join(' ')}></label>`;
+  };
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="${esc(spec.title)}">
+    <div class="pm-scrim" data-action="addcancel"></div>
+    <div class="pm-panel pm-form">
+      <div class="pm-head">${icon('plus', 14)}<h3>${esc(spec.title)}</h3>${spec.hint ? `<span class="pm-hint">${esc(spec.hint)}</span>` : ''}
+        <button class="btn btn-ghost" data-action="addcancel" aria-label="Cancel" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+      <div class="addform">${spec.fields.map(fieldHTML).join('')}</div>
+      <div class="af-foot"><button class="btn" data-action="addcancel">Cancel</button><button class="btn btn-primary" data-action="addsave">${icon('check', 14)}Save</button></div>
+    </div></div>`;
+}
 
 document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
@@ -2534,6 +3047,7 @@ document.addEventListener('click', e => {
   if (act === 'nav' || act === 'goto') {
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
+    ui.addModal = null;
     document.body.classList.remove('nav-open');
     try { history.replaceState(null, '', '#' + ui.view); } catch (err) {}
     animPending = true;
@@ -2566,6 +3080,11 @@ document.addEventListener('click', e => {
     render();
   } else if (act === 'backup') { doBackup(); }
   else if (act === 'restore') { $('#restoreFile').click(); }
+  else if (act === 'win-img') { winImgTarget = +btn.dataset.i; $('#winImgFile').click(); }
+  else if (act === 'win-img-clear') {
+    if (DEMO_LOCKED) { toast('Demo edits reset on refresh'); return; }
+    setPath(`wins.${+btn.dataset.i}.img`, ''); save(true); render(); toast('Photo removed');
+  }
   else if (act === 'reset') { doReset(); }
   else if (act === 'nudge-dismiss') { state.meta.nudgeSnoozed = new Date().toISOString(); save(false); render(); }
   else if (act === 'brandswitch') { toast('Multi-brand tip: keep one copy of this file per client — File → Duplicate, then rename.'); }
@@ -2580,9 +3099,31 @@ document.addEventListener('click', e => {
     ui.sort[t] = {key: k, dir: cur && cur.key === k && cur.dir === 'desc' ? 'asc' : 'desc'};
     render();
   } else if (act === 'addrow') {
+    // every add button gets the small add-form first — nothing lands in the
+    // dashboard until the user fills it in and hits Save
     const list = btn.dataset.list;
-    listRef(list).push(NEW_ROW[list]());
+    ui.addModal = {list, row: NEW_ROW[list]()};
+    render();
+    const first = document.querySelector('.pmodal .af-in');
+    if (first && window.matchMedia('(hover:hover) and (pointer:fine)').matches) first.focus();
+  } else if (act === 'addcancel') {
+    ui.addModal = null;
+    render();
+  } else if (act === 'addsave') {
+    const {list, row} = ui.addModal;
+    document.querySelectorAll('.pmodal [data-fkey]').forEach(inp => {
+      const k = inp.dataset.fkey;
+      const v = String(inp.value ?? '').trim();
+      if (inp.dataset.ftype === 'num') { if (v !== '') row[k] = num(v); }
+      else if (v !== '') row[k] = v;
+    });
+    listRef(list).push(row);
+    // a campaign saved while the status filter hides its status would vanish
+    // silently — reset the filter so the new row is always visible
+    if (list === 'campaigns') ui.filterCampaigns = 'all';
+    ui.addModal = null;
     save(true); render();
+    toast('✓ Added — tap any of its fields to edit it later');
   } else if (act === 'delrow') {
     const list = btn.dataset.list, i = parseInt(btn.dataset.i, 10);
     const arr = listRef(list);
@@ -2599,6 +3140,95 @@ $('#restoreFile').addEventListener('change', e => {
   e.target.value = '';
 });
 
+/* ---------------- Win photos ----------------
+   Everything happens on-device — the file is never uploaded anywhere. The image is redrawn
+   through a canvas at a bounded size before it is ever stored, because the raw file is the
+   whole problem: one untouched phone screenshot is a third of the browser's entire budget,
+   and that budget is shared with every other Clearly file in the buyer's Downloads folder. */
+let winImgTarget = null;
+function attachWinImg(file, idx) {
+  if (DEMO_LOCKED) { toast('Adding your own photos is part of the full version'); return; }
+  const d = D();
+  if (!(d.wins || [])[idx]) return;
+  if (!d.wins[idx].img && winImgCount(d) >= WIN_IMG_CAP) {
+    alert(`Photos are capped at ${WIN_IMG_CAP} so the planner keeps saving reliably — browser storage is small and shared with every other file you have open.\n\nRemove a photo from another win first, or keep this one as a note.`);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      /* Aspect-preserving, long edge 480 — an email screenshot is tall, and a square crop
+         would behead it. 480px JPEG q0.72 lands around 25-60 KB. */
+      const MAX = 480;
+      const scale = Math.min(1, MAX / Math.max(im.width, im.height));
+      const w = Math.max(1, Math.round(im.width * scale));
+      const h = Math.max(1, Math.round(im.height * scale));
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(im, 0, 0, w, h);
+      const uri = c.toDataURL('image/jpeg', 0.72);
+
+      /* Measured against a real write before committing. Attaching a photo that cannot be
+         saved would look like it worked until the next refresh. */
+      const probe = JSON.parse(JSON.stringify(state));
+      probe.data.wins[idx].img = uri;
+      if (!wouldFit(probe)) {
+        alert('This browser does not have room for another photo.\n\nRemove one from another win, or back up and start a fresh file. Nothing was changed.');
+        return;
+      }
+      setPath(`wins.${idx}.img`, uri);
+      save(true);
+      render();
+      toast('✓ Photo added — stored only on this device');
+    };
+    im.onerror = () => toast('Could not read that image — try a JPG or PNG');
+    im.src = reader.result;
+  };
+  reader.onerror = () => toast('Could not read that file');
+  reader.readAsDataURL(file);
+}
+
+$('#winImgFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (f && winImgTarget !== null) attachWinImg(f, winImgTarget);
+  e.target.value = '';
+});
+
+/* Drop straight onto a thumbnail. */
+document.addEventListener('dragover', e => {
+  const t = e.target.closest && e.target.closest('.thumb[data-winidx]');
+  if (!t) return;
+  e.preventDefault(); t.classList.add('drop');
+});
+document.addEventListener('dragleave', e => {
+  const t = e.target.closest && e.target.closest('.thumb[data-winidx]');
+  if (t) t.classList.remove('drop');
+});
+document.addEventListener('drop', e => {
+  const t = e.target.closest && e.target.closest('.thumb[data-winidx]');
+  if (!t) return;
+  e.preventDefault(); t.classList.remove('drop');
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) attachWinImg(f, +t.dataset.winidx);
+});
+/* Paste — the natural gesture right after screenshotting the email you just sent.
+   Goes to the first win without a photo, so it works without aiming. */
+document.addEventListener('paste', e => {
+  if (ui.view !== 'wins') return;
+  const items = (e.clipboardData && e.clipboardData.items) || [];
+  for (const it of items) {
+    if (it.type && it.type.startsWith('image/')) {
+      const f = it.getAsFile();
+      const wins = D().wins || [];
+      let idx = wins.findIndex(w => !w.img);
+      if (idx < 0) idx = wins.length - 1;
+      if (f && idx >= 0) { e.preventDefault(); attachWinImg(f, idx); }
+      return;
+    }
+  }
+});
+
 /* Editable field lifecycle */
 document.addEventListener('focusin', e => {
   const el = e.target;
@@ -2608,6 +3238,11 @@ document.addEventListener('keydown', e => {
   const el = e.target;
   if (!el.classList || !el.classList.contains('ed')) {
     if (e.key === 'Escape' && document.body.classList.contains('nav-open')) document.body.classList.remove('nav-open');
+    else if (e.key === 'Escape' && ui.addModal) { ui.addModal = null; render(); }
+    else if (e.key === 'Enter' && ui.addModal && el.classList && el.classList.contains('af-in') && el.tagName === 'INPUT') {
+      const saveBtn = document.querySelector('.pmodal [data-action="addsave"]');
+      if (saveBtn) saveBtn.click();
+    }
     return;
   }
   if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); el.blur(); }
@@ -2638,6 +3273,7 @@ document.addEventListener('change', e => {
     setPath(el.dataset.checkpath, el.checked);
     save(true);
     scheduleRender();
+
   } else if (el.dataset && el.dataset.action === 'filter-campaigns') {
     ui.filterCampaigns = el.value;
     render();
@@ -2646,8 +3282,13 @@ document.addEventListener('change', e => {
     setPath(path, el.value);
     save(true);
     render();
-    const again = document.querySelector(`select.statussel[data-path="${CSS.escape(path)}"]`);
-    if (again) again.focus();
+    // Keyboard users get their focus back after the re-render; on touch devices
+    // refocusing a <select> makes iOS treat the NEXT tap as "dismiss the focused
+    // picker" — every control then needs two taps — so only refocus with a pointer.
+    if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+      const again = document.querySelector(`select.statussel[data-path="${CSS.escape(path)}"]`);
+      if (again) again.focus();
+    }
   }
 });
 
