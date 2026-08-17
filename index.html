@@ -639,7 +639,7 @@ const fmt = {
 };
 function todayISO() { return new Date().toISOString().slice(0, 10); }
 function localISO(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-function isoOffset(days) { const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10); }
+function isoOffset(days) { const d = new Date(); d.setDate(d.getDate() + days); return localISO(d); }
 function daysSince(iso) {
   if (!iso) return null;
   const d = new Date(iso + 'T00:00:00');
@@ -801,7 +801,7 @@ function sampleData() {
       {id: uid(), title: 'Monthly list clean + sunset pass', date: isoOffset(6), type: 'review'},
     ],
     domains: [
-      {id: uid(), domain: 'mail.clearly.co', spf: 'pass', dkim: 'pass', dmarc: 'pass', warmup: 'complete', ip: 'dedicated'},
+      {id: uid(), domain: 'mail.clearly.co', spf: 'pass', dkim: 'pass', dmarc: 'unknown', warmup: 'complete', ip: 'dedicated'},
       {id: uid(), domain: 'get.clearly.co', spf: 'pass', dkim: 'pass', dmarc: 'unknown', warmup: 'week 3 of 6', ip: 'shared'},
     ],
     hygiene: {suppressed: 3240, sunsetDays: 150, lastCleaned: isoOffset(-24), cleanCadence: 'Monthly',
@@ -831,8 +831,10 @@ function sampleData() {
       ],
     },
     goals: [
-      {id: uid(), name: 'Monthly email revenue', target: 100000, actual: 82340, unit: '$'},
-      {id: uid(), name: 'List growth (net, 30d)', target: 2, actual: 3.4, unit: '%'},
+      /* actuals must agree with what Home derives from the same sample month —
+         a shopper comparing the two screens catches any gap ($12,710 / +2.63%) */
+      {id: uid(), name: 'Monthly email revenue', target: 15000, actual: 12710, unit: '$'},
+      {id: uid(), name: 'List growth (net, 30d)', target: 2, actual: 2.6, unit: '%'},
       {id: uid(), name: 'Automation share of revenue', target: 45, actual: 38.9, unit: '%'},
       {id: uid(), name: 'Sender score', target: 95, actual: 88, unit: ''},
       {id: uid(), name: 'Active subscribers', target: 18000, actual: 16410, unit: ''},
@@ -915,6 +917,9 @@ function clearSampleData(d) {
       if (JSON.stringify(d.hygiene[k]) === JSON.stringify(smp.hygiene[k])) d.hygiene[k] = (st.hygiene || {})[k] ?? null;
     });
   }
+  // a fresh file must not assert SPF is published or seed tests were run —
+  // the sample's checked-off items are sample data like any other row
+  if (Array.isArray(d.checklist)) d.checklist.forEach(c => { c.done = false; });
   return d;
 }
 function sampleActive() {
@@ -976,7 +981,13 @@ function wouldFit(nextState) {
     localStorage.setItem(KEY + '.probe', s);
     localStorage.removeItem(KEY + '.probe');
     return true;
-  } catch (e) { try { localStorage.removeItem(KEY + '.probe'); } catch (_) {} return false; }
+  } catch (e) {
+    try { localStorage.removeItem(KEY + '.probe'); } catch (_) {}
+    // 'full' vs 'blocked' matters to the caller: "too large" advice is wrong
+    // (and maddening) when the browser has storage switched off entirely
+    wouldFit.why = quotaError(e) ? 'full' : 'blocked';
+    return false;
+  }
 }
 function stateBytes() { try { return JSON.stringify(state).length; } catch (e) { return 0; } }
 
@@ -1124,20 +1135,27 @@ function doRestore(file) {
   reader.onload = () => {
     try {
       const parsed = JSON.parse(reader.result);
-      /* Checked before the confirm, so nobody is asked to overwrite their
-         planner with a file that was going to be rejected anyway. */
+      /* Shape first: untagged JSON defaults to 'pro' in editionMismatch, so checking
+         edition first told LITE buyers that ANY invalid file (even a Clearly Social
+         backup) "came from the PRO edition" — sending them hunting for a product
+         they don't own. A file must look like an email-planner backup before its
+         edition is worth mentioning. Both checks run before the confirm, so nobody
+         is asked to overwrite their planner with a file that was going to be
+         rejected anyway. */
+      const norm = normalizeState(parsed);
+      if (!norm) throw new Error('shape');
       const other = editionMismatch(parsed);
       if (other) {
         alert('That backup came from the ' + other.toUpperCase() + ' edition of the Clearly Email Marketing Dashboard.\n\nOpen it in that edition instead — restoring it here would leave parts of your planner empty. Nothing was changed.');
         return;
       }
-      const norm = normalizeState(parsed);
-      if (!norm) throw new Error('shape');
       /* Also before the confirm. A backup carrying more photos than this browser has room for
          would otherwise restore, render, say "✓ Backup restored", and only fail on the
          debounced save 300ms later — by which point the buyer has been told it worked. */
       if (!wouldFit(norm)) {
-        alert('That backup is too large for this browser’s storage — it would look restored but would not survive a refresh.\n\nOpen it in a browser with more room, or remove some photos from the planner it came from and back it up again. Nothing was changed.');
+        alert(wouldFit.why === 'blocked'
+          ? 'This browser has local storage switched off, so the backup would look restored but would not survive a refresh.\n\nEnable site data / local storage for files (or use another browser), then restore again. Nothing was changed.'
+          : 'That backup is too large for this browser’s storage — it would look restored but would not survive a refresh.\n\nOpen it in a browser with more room, or remove some photos from the planner it came from and back it up again. Nothing was changed.');
         return;
       }
       if (!confirm('Replace everything in this planner with the backup "' + file.name + '"? Your current data will be overwritten.')) return;
@@ -2285,7 +2303,7 @@ function viewDomains() {
       ${cardH('shield', 'Why This Table Matters')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">SPF / DKIM / DMARC are pass-fail with the inbox.</strong> A single failing record can silently route an entire program to spam. Verify in your DNS host or postmaster tools, then set each chip.</p>
-        <p style="margin:0">Aim for DMARC at <code>p=quarantine</code> or stricter, and keep the primary chips mirrored on the <strong>Home</strong> deliverability strip (they're the same fields — edit either place).</p>
+        <p style="margin:0">Aim for DMARC at <code>p=quarantine</code> or stricter. The <strong>Home</strong> deliverability strip (and the Monitor — those two share the same chips) tracks your <em>primary</em> sending domain; when the primary row here changes, update those chips to match.</p>
       </div>
     </section>
     <section class="card c6">
@@ -2302,10 +2320,16 @@ function viewDomains() {
 function sortRows(list, view, defKey, defDir) {
   const s = ui.sort[view] || {key: defKey, dir: defDir};
   const idx = list.map((_, i) => i);
+  // ISO dates sort as STRINGS (num('2026-08-17') would collapse to 2026 and tie every
+  // same-year row), and text with digits ('Engaged 90d') must not sort numerically —
+  // only treat the column as numeric when every non-empty value is a plain number
+  const isDate = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v);
+  const isNum = v => typeof v === 'number' || (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v)));
+  const vals = idx.map(i => list[i][s.key]).filter(v => v !== null && v !== undefined && v !== '');
+  const mode = vals.length && vals.every(isDate) ? 'date' : vals.length && vals.every(isNum) ? 'num' : 'text';
   idx.sort((a, b) => {
     let va = list[a][s.key], vb = list[b][s.key];
-    const na = num(va), nb = num(vb);
-    if (na !== null || nb !== null) { va = na ?? -Infinity; vb = nb ?? -Infinity; }
+    if (mode === 'num') { va = num(va) ?? -Infinity; vb = num(vb) ?? -Infinity; }
     else { va = String(va ?? '').toLowerCase(); vb = String(vb ?? '').toLowerCase(); }
     return (va < vb ? -1 : va > vb ? 1 : 0) * (s.dir === 'asc' ? 1 : -1);
   });
@@ -2414,6 +2438,7 @@ function viewAutomations() {
           <span style="font-size:11px;color:var(--ink-2);line-height:1.5"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--aqua);margin-right:4px"></span>automations<br>
           <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--coral);margin-right:4px"></span>campaigns & other</span></div>`)}
     </div></div></section>
+    ${!autos.length ? `<section class="card"><div class="emptystate">No flows yet — add your welcome, abandoned-cart and win-back automations, date the last time you actually opened each one, and this hub tells you which is quietly decaying.</div></section>` : ''}
     ${autos.map((a, i) => {
       const ds = daysSince(a.lastReviewed);
       const rev = ds === null ? staticChip('neutral', 'question', 'Never reviewed')
@@ -2491,6 +2516,7 @@ function viewSegments() {
   return `
   ${viewHead('Segment & Audience Intelligence', 'Where the money actually lives — size, engagement, and economics per segment.', `<button class="btn btn-primary" data-action="addrow" data-list="segments">${icon('plus', 14)}Add segment</button>`)}
   <div class="grid">
+    ${!(d.segments || []).length ? `<section class="card"><div class="emptystate">No segments yet — add your engaged, lapsing and inactive groups (most email platforms show these under Audience) and this view starts ranking where the money lives.</div></section>` : ''}
     ${d.segments.map((s, i) => {
       const rps = div(s.revenue, s.size);
       return `
@@ -2560,7 +2586,7 @@ function plannerEvents(d) {
   (d.automations || []).forEach((a, i) => {
     if (a.lastReviewed) {
       const due = new Date(a.lastReviewed + 'T00:00:00'); due.setDate(due.getDate() + 30);
-      evs.push({date: due.toISOString().slice(0, 10), title: `Review: ${a.name}`, kind: 'review', list: 'automations', i});
+      evs.push({date: localISO(due), title: `Review: ${a.name}`, kind: 'review', list: 'automations', i});
     }
   });
   return evs;
@@ -2599,7 +2625,7 @@ function viewPlanner() {
             const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvs = byDate[iso] || [];
             const busy = dayEvs.length > 2;
-            return `<div class="day ${iso === tISO ? 'today' : ''}" data-action="daypeek" data-date="${iso}" role="button" tabindex="0" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? dayEvs.map(e => e.title).join('; ') : 'no items'}${busy ? '. Busy day' : ''}. Click to open this day">
+            return `<div class="day ${iso === tISO ? 'today' : ''}" data-action="daypeek" data-date="${iso}" role="button" tabindex="0" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? esc(dayEvs.map(e => e.title).join('; ')) : 'no items'}${busy ? '. Busy day' : ''}. Click to open this day">
               <span class="dnum">${day}</span>
               ${busy ? `<span class="busy" title="More than 2 items — consider spacing sends">busy</span>` : ''}
               ${dayEvs.slice(0, 3).map(e => `<span class="ev ${e.kind === 'review' ? 'ev-auto' : ''}">${esc(e.title)}</span>`).join('')}
@@ -2669,7 +2695,7 @@ function viewGoals() {
       ${cardH('target', 'Goal Tracker', '', 'golden')}
       <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:640px">
         <thead><tr><th>Goal</th><th class="num">Target</th><th class="num">Actual</th><th style="width:32%">Progress</th><th></th></tr></thead>
-        <tbody>${d.goals.map((g, i) => {
+        <tbody>${!d.goals.length ? `<tr><td colspan="9"><div class="emptystate">No goals yet — add revenue, list-growth or open-rate targets and this table grades itself as your months fill in.</div></td></tr>` : ''}${d.goals.map((g, i) => {
           const p = div(g.actual, g.target);
           const pct2 = p === null ? null : clamp(p * 100, 0, 130);
           return `<tr>
@@ -2753,7 +2779,7 @@ function viewTests() {
       ${cardH('flask', 'Test Log', `${d.tests.length} test${d.tests.length === 1 ? '' : 's'}`, 'aqua')}
       <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:860px">
         <thead><tr><th>Test</th><th>Hypothesis</th><th>Metric</th><th class="num">A</th><th class="num">B</th><th>Winner</th><th>Learning</th><th>Status</th><th></th></tr></thead>
-        <tbody>${d.tests.map((t, i) => `
+        <tbody>${!d.tests.length ? `<tr><td colspan="12"><div class="emptystate">No tests yet — log one hypothesis per row (subject line, send time, CTA…) and the learning column becomes your playbook.</div></td></tr>` : ''}${d.tests.map((t, i) => `
           <tr>
             <td>${edField(`tests.${i}.name`, {min: 14, max: 22, label: 'Test name'})}</td>
             <td>${edField(`tests.${i}.hypothesis`, {min: 20, max: 34, label: 'Hypothesis'})}</td>
@@ -2785,7 +2811,7 @@ function startLegend() {
     <div class="card-b">
       <p style="margin:0 0 8px"><span class="ed-demo">like this</span> &nbsp;is yours to type in — click it and start typing.</p>
       <p style="margin:0 0 8px"><strong>Bold numbers</strong> and every chart, rate and score are worked out from what you typed. You never edit those.</p>
-      <p style="margin:0;color:var(--muted)">Enter saves, Escape undoes. Everything saves by itself about a third of a second after you stop typing.</p>
+      <p style="margin:0;color:var(--muted)">Enter saves, Escape undoes. ${DEMO_LOCKED ? 'In this demo, edits live until you refresh — the full version saves everything automatically.' : 'Table edits save by themselves; pop-up editors save when you hit Save.'}</p>
     </div></section>`;
 }
 function startData() {
